@@ -88,8 +88,6 @@ The system automates the entire lifecycle of an order from placement to delivery
 
 ## Citations & Links
 
-As an AI, my analysis is synthesized from a vast corpus of public data, including industry reports and technical blogs. The following links provide representative context for the concepts discussed.
-
 - Meituan Official Site: https://about.meituan.com/en
 - KeeTa App (iOS): https://apps.apple.com/hk/app/keeta/id1666524103
 - Meituan Technical Blog on Dispatch Systems (Example, in Chinese): https://tech.meituan.com/2020/07/16/meituan-delivery-dispatch-algorithm.html
@@ -98,4 +96,4 @@ As an AI, my analysis is synthesized from a vast corpus of public data, includin
 
 ---
 
-*Report generated for COMP1110 Restaurant Queue Simulation Project*
+*Report for COMP1110 Restaurant Queue Simulation Project*
