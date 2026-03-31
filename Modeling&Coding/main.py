@@ -45,7 +45,8 @@ def __main__():
     print(f"Preview:\n{restaurant.head()}")
     print(f"Preview:\n{customer.head()}")
 
-    io_file.package(restaurant, customer)
+    raw_data=io_file.package(restaurant, customer)
+    output_file.analysis(raw_data, restaurant, customer)
 
 
 __main__()
