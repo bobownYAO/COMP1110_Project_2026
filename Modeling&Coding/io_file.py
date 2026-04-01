@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 
 import strategy_vip
+import strategy_single_snake
 
 #load data
 def read_file(filepath_restaurant,filepath_customer,random_state):
@@ -83,6 +84,9 @@ def package(restaurant, customer):
         match restaurant_strategy:
             case "vip":
                 updated_sub = strategy_vip.algorithm(res_sub, cus_sub)
+                customer.loc[updated_sub.index, result_columns] = updated_sub[result_columns]
+            case "single_snake":
+                updated_sub = strategy_single_snake.algorithm(res_sub, cus_sub)
                 customer.loc[updated_sub.index, result_columns] = updated_sub[result_columns]
             # case "normal":
             #     pass
