@@ -3,6 +3,7 @@ import numpy as np
 
 import strategy_vip
 import strategy_single_snake
+import strategy_size_base
 
 #load data
 def read_file(filepath_restaurant,filepath_customer,random_state):
@@ -87,6 +88,9 @@ def package(restaurant, customer):
                 customer.loc[updated_sub.index, result_columns] = updated_sub[result_columns]
             case "single_snake":
                 updated_sub = strategy_single_snake.algorithm(res_sub, cus_sub)
+                customer.loc[updated_sub.index, result_columns] = updated_sub[result_columns]
+            case "size_base":
+                updated_sub = strategy_size_base.algorithm(res_sub, cus_sub)
                 customer.loc[updated_sub.index, result_columns] = updated_sub[result_columns]
             # case "normal":
             #     pass
