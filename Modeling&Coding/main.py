@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 
 import io_file
+import output_file
 
 def __main__():
     print("Dinning time predicting model?\nA) Random, B) Fixed")
