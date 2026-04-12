@@ -48,6 +48,9 @@ def __main__():
 
     raw_data=io_file.package(restaurant, customer)
     output_file.analysis(raw_data, restaurant, customer)
+    raw_data = io_file.package(restaurant, customer)
+    output_file.analysis(raw_data, restaurant, customer)
+    visualise.plot_occupation(raw_data, restaurant)
 
 
 __main__()
