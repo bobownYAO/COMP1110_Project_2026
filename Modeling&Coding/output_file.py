@@ -5,7 +5,7 @@ import numpy as np
 TABLE_SEAT_CAPACITY = {"A": 2, "B": 4, "C": 6}
 
 
-def _total_seats(restaurant_sub):
+def total_seats1(restaurant_sub):
    
     total = 0
     for _, row in restaurant_sub.iterrows():
@@ -53,7 +53,7 @@ def analysis(raw_data, restaurant, customer):
         cus_sub     = raw_data[raw_data["restaurant"] == r_name].copy()
         strategy    = res_sub["strategy"].iloc[0]
         open_time   = res_sub["open_time"].iloc[0]
-        total_seats = _total_seats(res_sub)
+        total_seats = total_seats1(res_sub)
 
         table_summary = {
             row["table_size"]: int(row["table_number"])
