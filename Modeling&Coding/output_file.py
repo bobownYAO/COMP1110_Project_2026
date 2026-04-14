@@ -5,7 +5,7 @@ import numpy as np
 TABLE_SEAT_CAPACITY = {"A": 2, "B": 4, "C": 6}
 
 
-def f_total_seats(restaurant_sub):
+def _total_seats(restaurant_sub):
    
     total = 0
     for _, row in restaurant_sub.iterrows():
@@ -16,7 +16,7 @@ def f_total_seats(restaurant_sub):
     return total
 
 
-def f_occupation_rate(customer_sub, total_seats, open_time):
+def _occupation_rate(customer_sub, total_seats, open_time):
     
     served = customer_sub.dropna(subset=["start_service_time", "leave_time"])
     if served.empty:
@@ -53,7 +53,7 @@ def analysis(raw_data, restaurant, customer):
         cus_sub     = raw_data[raw_data["restaurant"] == r_name].copy()
         strategy    = res_sub["strategy"].iloc[0]
         open_time   = res_sub["open_time"].iloc[0]
-        total_seats = f_total_seats(res_sub)
+        total_seats = _total_seats(res_sub)
 
         table_summary = {
             row["table_size"]: int(row["table_number"])
@@ -83,7 +83,7 @@ def analysis(raw_data, restaurant, customer):
             print(f"\n  ⚠  Unserved customers: index = {unserved['index'].tolist()}")
 
         # ── Occupation rate ───────────────────────────────────────────────
-        avg_occ, occ_series = f_occupation_rate(cus_sub, total_seats, open_time)
+        avg_occ, occ_series = _occupation_rate(cus_sub, total_seats, open_time)
 
         print(f"\n  ── Occupation Rate ──")
         if np.isnan(avg_occ):
