@@ -16,7 +16,7 @@ def total_seats1(restaurant_sub):
     return total
 
 
-def _occupation_rate(customer_sub, total_seats, open_time):
+def occupation_rate(customer_sub, total_seats, open_time):
     
     served = customer_sub.dropna(subset=["start_service_time", "leave_time"])
     if served.empty:
@@ -83,7 +83,7 @@ def analysis(raw_data, restaurant, customer):
             print(f"\n  ⚠  Unserved customers: index = {unserved['index'].tolist()}")
 
         # ── Occupation rate ───────────────────────────────────────────────
-        avg_occ, occ_series = _occupation_rate(cus_sub, total_seats, open_time)
+        avg_occ, occ_series = occupation_rate(cus_sub, total_seats, open_time)
 
         print(f"\n  ── Occupation Rate ──")
         if np.isnan(avg_occ):
