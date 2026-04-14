@@ -4,7 +4,7 @@ import numpy as np
 import sys
 sys.path.insert(0, '/home/claude')
 import io_file
-
+import output_file
 
 def plot_occupation(raw_data, restaurant, save_path=None):
     """
@@ -30,8 +30,8 @@ def plot_occupation(raw_data, restaurant, save_path=None):
         res_sub     = restaurant[restaurant["name"] == r_name]
         cus_sub     = raw_data[raw_data["restaurant"] == r_name].copy()
         open_time   = res_sub["open_time"].iloc[0]
-        total_seats = _total_seats(res_sub)
-        avg_occ, occ_series = _occupation_rate(cus_sub, total_seats, open_time)
+        total_seats = output_file.f_total_seats(res_sub)
+        avg_occ, occ_series = output_file.f_occupation_rate(cus_sub, total_seats, open_time)
         if not np.isnan(avg_occ):
             plottable.append((r_name, res_sub, cus_sub, total_seats,
                               open_time, avg_occ, occ_series))
