@@ -8,20 +8,7 @@ import output_file
 
 
 def plot_occupation(raw_data, restaurant, save_path=None):
-    """
-    For each restaurant in `restaurant`, compute the minute-by-minute
-    occupation rate and draw it as a line graph.
-
-    All restaurants are plotted on the SAME figure as separate subplots,
-    one row per restaurant, so they are easy to compare.
-
-    Parameters
-    ----------
-    raw_data    : customer DataFrame returned by io_file.package()
-    restaurant  : restaurant DataFrame returned by io_file.read_file()
-    save_path   : if given (e.g. "occupation.png"), saves the figure there.
-                  If None, calls plt.show() instead.
-    """
+    
 
     restaurant_names = restaurant["name"].unique()
 
@@ -31,10 +18,10 @@ def plot_occupation(raw_data, restaurant, save_path=None):
         res_sub     = restaurant[restaurant["name"] == r_name]
         cus_sub     = raw_data[raw_data["restaurant"] == r_name].copy()
         open_time   = res_sub["open_time"].iloc[0]
-        total_seats = _total_seats(res_sub)
-        avg_occ, occ_series = _occupation_rate(cus_sub, total_seats, open_time)
+        total_seats2 = total_seats1(res_sub)
+        avg_occ, occ_series = _occupation_rate(cus_sub, total_seats2, open_time)
         if not np.isnan(avg_occ):
-            plottable.append((r_name, res_sub, cus_sub, total_seats,
+            plottable.append((r_name, res_sub, cus_sub, total_seats2,
                               open_time, avg_occ, occ_series))
 
     if not plottable:
@@ -52,7 +39,7 @@ def plot_occupation(raw_data, restaurant, save_path=None):
 
     colours = plt.cm.tab10.colors
 
-    for i, (r_name, res_sub, cus_sub, total_seats,
+    for i, (r_name, res_sub, cus_sub, total_seats2,
             open_time, avg_occ, occ_series) in enumerate(plottable):
 
         ax     = axes[i][0]
@@ -96,7 +83,7 @@ def plot_occupation(raw_data, restaurant, save_path=None):
 
         ax.set_title(
             f"{r_name}  |  Strategy: {strategy}  |  "
-            f"Tables: {table_summary}  →  {total_seats} seats",
+            f"Tables: {table_summary}  →  {total_seats2} seats",
             fontsize=11, pad=8
         )
         ax.set_xlabel("Time (minutes)", fontsize=10)
