@@ -19,7 +19,7 @@ def plot_occupation(raw_data, restaurant, save_path=None):
         cus_sub     = raw_data[raw_data["restaurant"] == r_name].copy()
         open_time   = res_sub["open_time"].iloc[0]
         total_seats2 = total_seats1(res_sub)
-        avg_occ, occ_series = _occupation_rate(cus_sub, total_seats2, open_time)
+        avg_occ, occ_series = occupation_rate(cus_sub, total_seats2, open_time)
         if not np.isnan(avg_occ):
             plottable.append((r_name, res_sub, cus_sub, total_seats2,
                               open_time, avg_occ, occ_series))
