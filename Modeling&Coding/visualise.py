@@ -4,6 +4,7 @@ import numpy as np
 import sys
 sys.path.insert(0, '/home/claude')
 import io_file
+import output_file
 
 
 def plot_occupation(raw_data, restaurant, save_path=None):
