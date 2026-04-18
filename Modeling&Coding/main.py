@@ -4,6 +4,10 @@ import numpy as np
 import io_file
 import output_file
 import visualise
+import plot_table_utilization_line
+import plot_table_utilization_bar
+import plot_waiting_time_density
+import plot_queue_length_over_time
 
 def __main__():
     print("Dinning time predicting model?\nA) Random, B) Fixed")
@@ -52,6 +56,23 @@ def __main__():
     raw_data = io_file.package(restaurant, customer)
     output_file.analysis(raw_data, restaurant, customer)
     visualise.plot_occupation(raw_data, restaurant)
+    plot_table_utilization_line.plot_table_utilization_line(
+        raw_data, restaurant, save_path="table_utilization_line.png"
+    )
+
+    plot_table_utilization_bar.plot_table_utilization_bar(
+        raw_data, restaurant, save_path="table_utilization_bar.png"
+    )
+
+    plot_waiting_time_density.plot_waiting_time_density(
+        raw_data, restaurant, save_path="waiting_time_density.png"
+    )
+
+    plot_queue_length_over_time.plot_queue_length_over_time(
+        raw_data, restaurant, save_path="queue_length_over_time.png"
+    )
+
+
 
 
 __main__()
