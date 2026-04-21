@@ -3,46 +3,21 @@ from __future__ import annotations
 import argparse
 import csv
 import random
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
 
 @dataclass(frozen=True)
-class ScaleConfig:
-	min_restaurants: int
-	max_restaurants: int
-	min_customers_per_restaurant: int
-	max_customers_per_restaurant: int
-	min_open_time: int
-	max_open_time: int
-
-
-SCALE_CONFIGS: dict[str, ScaleConfig] = {
-	"small": ScaleConfig(
-		min_restaurants=2,
-		max_restaurants=5,
-		min_customers_per_restaurant=20,
-		max_customers_per_restaurant=100,
-		min_open_time=0,
-		max_open_time=20,
-	),
-	"medium": ScaleConfig(
-		min_restaurants=5,
-		max_restaurants=20,
-		min_customers_per_restaurant=40,
-		max_customers_per_restaurant=200,
-		min_open_time=0,
-		max_open_time=40,
-	),
-	"large": ScaleConfig(
-		min_restaurants=20,
-		max_restaurants=100,
-		min_customers_per_restaurant=80,
-		max_customers_per_restaurant=300,
-		min_open_time=0,
-		max_open_time=60,
-	),
-}
+class GenerationConfig:
+	strategy: str
+	strategy_label: str
+	restaurant_count: int
+	customers_per_restaurant: int
+	vip_probability: float
+	group_probabilities: tuple[float, float, float]
+	arrival_gap_mode: str
+	arrival_gaps: tuple[int, ...]
 
 
 TABLE_SIZE_DEFS = [
@@ -50,7 +25,20 @@ TABLE_SIZE_DEFS = [
 	("B", (1, 6)),
 	("C", (1, 5)),
 ]
-SUPPORTED_STRATEGIES = ["vip", "single_snake", "size_base"]
+STRATEGY_ALIASES = {
+	"single": ("single_snake", "single"),
+	"single_snake": ("single_snake", "single"),
+	"size_base": ("size_base", "size_base"),
+	"size": ("size_base", "size_base"),
+	"vip": ("vip", "vip"),
+}
+BASELINE_VIP_PROBABILITY = 0.20
+BASELINE_GROUP_PROBABILITIES = (0.60, 0.20, 0.20)
+ARRIVAL_GAP_DISTRIBUTIONS = {
+	"long": (2, 3, 5, 7, 10, 12, 15, 20),
+	"normal": (0, 0, 1, 1, 2, 3, 5, 7),
+	"short": (0, 0, 0, 0, 1, 1, 2, 3),
+}
 
 
 def _write_csv(file_path: Path, rows: list[dict], columns: list[str]) -> None:
@@ -61,25 +49,150 @@ def _write_csv(file_path: Path, rows: list[dict], columns: list[str]) -> None:
 		writer.writerows(rows)
 
 
+def _parse_probability(value: str) -> float:
+	cleaned = value.strip()
+	if cleaned.endswith("%"):
+		number = float(cleaned[:-1].strip()) / 100
+	else:
+		number = float(cleaned)
+		if number > 1:
+			number /= 100
+
+	if not 0 <= number <= 1:
+		raise ValueError("Probability must be between 0 and 1, or between 0% and 100%.")
+	return number
+
+
+def _prompt_yes_no(prompt: str, default: bool = True) -> bool:
+	suffix = "[Y/n]" if default else "[y/N]"
+	while True:
+		answer = input(f"{prompt} {suffix}: ").strip().lower()
+		if not answer:
+			return default
+		if answer in {"y", "yes"}:
+			return True
+		if answer in {"n", "no"}:
+			return False
+		print("Please enter Y or N.")
+
+
+def _prompt_int(prompt: str, min_value: int = 1) -> int:
+	while True:
+		answer = input(f"{prompt}: ").strip()
+		try:
+			value = int(answer)
+		except ValueError:
+			print("Please enter an integer.")
+			continue
+
+		if value < min_value:
+			print(f"Please enter an integer >= {min_value}.")
+			continue
+		return value
+
+
+def _prompt_probability(prompt: str) -> float:
+	while True:
+		answer = input(f"{prompt}: ").strip()
+		try:
+			return _parse_probability(answer)
+		except ValueError as exc:
+			print(f"Invalid probability: {exc}")
+
+
+def _prompt_strategy() -> tuple[str, str]:
+	while True:
+		answer = input("Strategy (single / size_base / vip): ").strip().lower()
+		answer = answer.replace("-", "_")
+		if answer in STRATEGY_ALIASES:
+			return STRATEGY_ALIASES[answer]
+		print("Invalid strategy. Please choose single, size_base, or vip.")
+
+
+def _prompt_group_probabilities() -> tuple[float, float, float]:
+	if _prompt_yes_no(
+		"Use baseline group-size distribution A=60%, B=20%, C=20%?",
+		default=True,
+	):
+		return BASELINE_GROUP_PROBABILITIES
+
+	while True:
+		answer = input(
+			"Enter custom A and B probabilities, separated by comma "
+			"(for example: 60,20 or 0.6,0.2): "
+		).strip()
+		parts = [part for part in re.split(r"[\s,]+", answer) if part]
+		if len(parts) != 2:
+			print("Please enter exactly two values: A probability and B probability.")
+			continue
+
+		try:
+			a_probability = _parse_probability(parts[0])
+			b_probability = _parse_probability(parts[1])
+		except ValueError as exc:
+			print(f"Invalid probability: {exc}")
+			continue
+
+		c_probability = 1 - a_probability - b_probability
+		if c_probability < 0:
+			print("A + B cannot be greater than 100%. Please try again.")
+			continue
+		return a_probability, b_probability, c_probability
+
+
+def _prompt_arrival_gap_mode() -> tuple[str, tuple[int, ...]]:
+	while True:
+		answer = input("Arrival time interval (long / normal / short): ").strip().lower()
+		if answer in ARRIVAL_GAP_DISTRIBUTIONS:
+			return answer, ARRIVAL_GAP_DISTRIBUTIONS[answer]
+		print("Invalid interval mode. Please choose long, normal, or short.")
+
+
+def collect_config() -> GenerationConfig:
+	strategy, strategy_label = _prompt_strategy()
+
+	if strategy == "vip":
+		if _prompt_yes_no("Use baseline VIP probability = 20%?", default=True):
+			vip_probability = BASELINE_VIP_PROBABILITY
+		else:
+			vip_probability = _prompt_probability("VIP occurrence probability")
+	else:
+		vip_probability = 0.0
+
+	restaurant_count = _prompt_int("Number of restaurants", min_value=1)
+	customers_per_restaurant = _prompt_int("Total customers per restaurant", min_value=1)
+	group_probabilities = _prompt_group_probabilities()
+	arrival_gap_mode, arrival_gaps = _prompt_arrival_gap_mode()
+
+	return GenerationConfig(
+		strategy=strategy,
+		strategy_label=strategy_label,
+		restaurant_count=restaurant_count,
+		customers_per_restaurant=customers_per_restaurant,
+		vip_probability=vip_probability,
+		group_probabilities=group_probabilities,
+		arrival_gap_mode=arrival_gap_mode,
+		arrival_gaps=arrival_gaps,
+	)
+
+
 def _generate_restaurants(
 	rng: random.Random,
-	scale: ScaleConfig,
+	config: GenerationConfig,
 ) -> tuple[list[dict], dict[str, int]]:
 	restaurant_rows: list[dict] = []
 	open_times: dict[str, int] = {}
 
-	restaurant_count = rng.randint(scale.min_restaurants, scale.max_restaurants)
-	for idx in range(1, restaurant_count + 1):
+	for idx in range(1, config.restaurant_count + 1):
 		name = f"R{idx}"
-		strategy = rng.choice(SUPPORTED_STRATEGIES)
-		open_time = rng.randint(scale.min_open_time, scale.max_open_time)
+		open_time = 0
 		open_times[name] = open_time
 
 		for table_size, (min_tables, max_tables) in TABLE_SIZE_DEFS:
 			restaurant_rows.append(
 				{
 					"name": name,
-					"strategy": strategy,
+					"strategy": config.strategy,
 					"open_time": open_time,
 					"table_size": table_size,
 					"table_number": rng.randint(min_tables, max_tables),
@@ -89,30 +202,33 @@ def _generate_restaurants(
 	return restaurant_rows, open_times
 
 
+def _generate_group_size(rng: random.Random, probabilities: tuple[float, float, float]) -> int:
+	group_type = rng.choices(("A", "B", "C"), weights=probabilities, k=1)[0]
+	if group_type == "A":
+		return rng.randint(1, 2)
+	if group_type == "B":
+		return rng.randint(3, 4)
+	return rng.randint(5, 6)
+
+
 def _generate_customers(
 	rng: random.Random,
-	scale: ScaleConfig,
+	config: GenerationConfig,
 	open_times: dict[str, int],
 ) -> list[dict]:
 	customer_rows: list[dict] = []
 
 	for restaurant_name in sorted(open_times.keys()):
 		open_time = open_times[restaurant_name]
-		customer_count = rng.randint(
-			scale.min_customers_per_restaurant,
-			scale.max_customers_per_restaurant,
-		)
-
 		current_time = open_time
-		for index in range(1, customer_count + 1):
-			# Randomly keep same arrival time for burst arrivals.
-			current_time += rng.choice([0, 0, 1, 1, 2, 3, 5, 7])
+		for index in range(1, config.customers_per_restaurant + 1):
+			current_time += rng.choice(config.arrival_gaps)
 			customer_rows.append(
 				{
 					"index": index,
 					"restaurant": restaurant_name,
-					"vip": 1 if rng.random() < 0.2 else 0,
-					"number": rng.randint(1, 6),
+					"vip": 1 if rng.random() < config.vip_probability else 0,
+					"number": _generate_group_size(rng, config.group_probabilities),
 					"arrival_time": current_time,
 				}
 			)
@@ -120,19 +236,18 @@ def _generate_customers(
 	return customer_rows
 
 
-def generate_one_scale(scale_name: str, seed: int, output_dir: Path) -> tuple[Path, Path]:
-	if scale_name not in SCALE_CONFIGS:
-		valid = ", ".join(SCALE_CONFIGS.keys())
-		raise ValueError(f"Unknown scale '{scale_name}'. Valid values: {valid}")
-
+def generate_dataset(config: GenerationConfig, seed: int, output_dir: Path) -> tuple[Path, Path]:
 	rng = random.Random(seed)
-	config = SCALE_CONFIGS[scale_name]
 
 	restaurant_rows, open_times = _generate_restaurants(rng, config)
 	customer_rows = _generate_customers(rng, config, open_times)
 
-	restaurant_path = output_dir / f"testdata_restaurant_{scale_name}.csv"
-	customer_path = output_dir / f"testdata_customer_{scale_name}.csv"
+	file_stem = (
+		f"{config.strategy_label}_{config.restaurant_count}r_"
+		f"{config.customers_per_restaurant}c_{config.arrival_gap_mode}"
+	)
+	restaurant_path = output_dir / f"testdata_restaurant_{file_stem}.csv"
+	customer_path = output_dir / f"testdata_customer_{file_stem}.csv"
 
 	_write_csv(
 		restaurant_path,
@@ -150,7 +265,7 @@ def generate_one_scale(scale_name: str, seed: int, output_dir: Path) -> tuple[Pa
 
 def build_parser() -> argparse.ArgumentParser:
 	parser = argparse.ArgumentParser(
-		description="Generate random restaurant/customer CSV data for all scales.",
+		description="Generate random restaurant/customer CSV data from interactive choices.",
 	)
 	parser.add_argument(
 		"--seed",
@@ -171,15 +286,26 @@ def main() -> None:
 	parser = build_parser()
 	args = parser.parse_args()
 
+	config = collect_config()
 	print(f"Output directory: {args.output_dir}")
-	for offset, scale_name in enumerate(["small", "medium", "large"]):
-		restaurant_file, customer_file = generate_one_scale(
-			scale_name=scale_name,
-			seed=args.seed + offset,
-			output_dir=args.output_dir,
-		)
-		print(f"[{scale_name}] restaurant -> {restaurant_file}")
-		print(f"[{scale_name}] customer   -> {customer_file}")
+	restaurant_file, customer_file = generate_dataset(
+		config=config,
+		seed=args.seed,
+		output_dir=args.output_dir,
+	)
+	print(f"Strategy: {config.strategy}")
+	print(f"Restaurants: {config.restaurant_count}")
+	print(f"Customers per restaurant: {config.customers_per_restaurant}")
+	print(f"VIP probability: {config.vip_probability:.1%}")
+	print(
+		"Group probabilities: "
+		f"A={config.group_probabilities[0]:.1%}, "
+		f"B={config.group_probabilities[1]:.1%}, "
+		f"C={config.group_probabilities[2]:.1%}"
+	)
+	print(f"Arrival interval mode: {config.arrival_gap_mode} {list(config.arrival_gaps)}")
+	print(f"restaurant -> {restaurant_file}")
+	print(f"customer   -> {customer_file}")
 
 
 if __name__ == "__main__":
