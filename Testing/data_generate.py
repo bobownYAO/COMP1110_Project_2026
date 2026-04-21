@@ -112,7 +112,7 @@ def _generate_customers(
 					"index": index,
 					"restaurant": restaurant_name,
 					"vip": 1 if rng.random() < 0.2 else 0,
-					"number": rng.randint(1, 10),
+					"number": rng.randint(1, 6),
 					"arrival_time": current_time,
 				}
 			)
