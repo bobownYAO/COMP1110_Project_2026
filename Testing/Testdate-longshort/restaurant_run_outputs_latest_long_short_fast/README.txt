@@ -1,0 +1,1 @@
+Latest long/short CSV simulation outputs. Fixed dining time input B was used. Files include full text output, summaries, processed customer/restaurant outputs, 5 per-dataset image types, and 5 combined image types. The simulation follows the same rules as the uploaded Python strategies but uses optimized data structures to avoid timeout on single_short.

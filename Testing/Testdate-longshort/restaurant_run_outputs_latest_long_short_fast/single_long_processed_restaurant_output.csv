@@ -1,0 +1,16 @@
+name,strategy,open_time,table_size,table_number
+R1,single_snake,2,A,9
+R1,single_snake,2,B,4
+R1,single_snake,2,C,4
+R2,single_snake,20,A,9
+R2,single_snake,20,B,9
+R2,single_snake,20,C,4
+R3,single_snake,7,A,8
+R3,single_snake,7,B,5
+R3,single_snake,7,C,3
+R4,single_snake,12,A,14
+R4,single_snake,12,B,8
+R4,single_snake,12,C,5
+R5,single_snake,10,A,10
+R5,single_snake,10,B,7
+R5,single_snake,10,C,4
