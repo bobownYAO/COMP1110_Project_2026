@@ -21,9 +21,9 @@ class GenerationConfig:
 
 
 TABLE_SIZE_DEFS = [
-	("A", (2, 8)),
-	("B", (1, 6)),
-	("C", (1, 5)),
+	("A", (8, 14)),
+	("B", (4, 10)),
+	("C", (2, 4)),
 ]
 STRATEGY_ALIASES = {
 	"single": ("single_snake", "single"),
