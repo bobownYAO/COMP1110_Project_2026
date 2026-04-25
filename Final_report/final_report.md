@@ -24,11 +24,7 @@ The VIP strategy was studied as a differentiated-service model. Its main purpose
 
 The size-based strategy separates customers according to party size and then matches them to different table categories. This idea was motivated by the inefficiency of seating small groups at oversized tables or forcing large groups to wait unnecessarily when small tables remain idle. The research associated this strategy with digital queueing ecosystems such as Meituan and KeeTa, where segmentation and matching are central to operational efficiency.
 
-#### 2.4 Table Sharing
-
-The research also explored table sharing as a further extension of queue optimization. In this model, separate customer groups may share available seating space in order to increase occupancy and reduce waiting time. Although the current repository does not yet implement a table-sharing algorithm, this research direction remained important because it broadened the project beyond conventional first-come-first-served logic and highlighted the possibility of future expansion.
-
-#### 2.5 Research Contribution to the Final System
+#### 2.4 Research Contribution to the Final System
 
 Taken together, the research stage shaped the final implementation in two ways. First, it established the main performance concerns of the project: fairness, waiting time, table utilization, and service priority. Second, it provided the conceptual basis for selecting the three strategies that were actually implemented in code: `single_snake`, `vip`, and `size_base`. In other words, the final code reflects a narrowed and more feasible subset of the original research scope.
 
