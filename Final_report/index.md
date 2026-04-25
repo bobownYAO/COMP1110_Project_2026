@@ -30,7 +30,6 @@ Prior to implementation, the project drew upon several strands of practical and 
 
 - `Single Snake Queue`, which emphasizes pooled waiting and procedural fairness
 - `VIP Queue`, which emphasizes differentiated service and priority handling
-- `Table Sharing`, which emphasizes seat utilization through shared occupancy
 - `Multi-Queue / Size-Based Queue`, which emphasizes the matching of table capacity to party size
 
 These research directions were relevant because each represents a different operational objective. The single-snake approach is primarily associated with fairness and consistency; VIP queueing is associated with business value and customer segmentation; size-based queueing is associated with efficiency in table allocation; and table sharing is associated with maximizing occupancy. The research stage therefore provided both practical motivation and conceptual guidance for the simulation design.
@@ -58,9 +57,12 @@ The restaurant dataset includes the following fields:
 
 - `name`
 - `strategy`
-- `open_time`
+- `open_time`（by default the open time is 0)
 - `table_size`
+- `table percentage`
 - `table_number`
+- `custormer per restaurant`
+- `vip percentage`
 
 Within the current model, table sizes are represented by three abstract categories:
 
