@@ -87,9 +87,9 @@ The planned division of labor can be summarized as follows:
 
 | Member | Planned Research Focus | Planned Modeling / Coding Focus | Planned Report Focus |
 |---|---|---|---|
-| Yao Lijia | VIP strategy, THE GULU | File input, database management, data model, data generation | Vision, optimization, and data-model explanation |
-| Yu Wei | Size-based queue, Meituan / KeeTa | Algorithm 1 and 2, sample testing | Problem definition, significance, and algorithm explanation |
-| Jiang Hongyi | Single snake and table sharing, Meiwei Bu Yong Deng | Algorithm 3 and 4, scenario design | Evaluation, limitations, and algorithm explanation |
+| Yao Lijia | VIP strategy, THE GULU | File input, database management, data model, data generation, Algorithm 1 | Vision, optimization, and data-model explanation |
+| Yu Wei | Size-based queue, Meituan / KeeTa | Algorithm 2, sample testing, group project writing | Problem definition, significance, and algorithm explanation |
+| Jiang Hongyi | Single snake and table sharing, Meiwei Bu Yong Deng | Algorithm 3, scenario design | Evaluation, limitations, and algorithm explanation |
 | Zhang Zhanhao | Single snake strategy, Haidilao | File output, case simulation, output analysis | Comparative analysis and case-simulation explanation |
 
 This planned structure is also reflected in the repository itself. The folder layout moves from `Plan` to `Research`, then to `Modeling&Coding`, `Testing`, and finally `Final_report`, which shows a clear workflow from conceptual planning to implementation and evaluation.
