@@ -1,4 +1,4 @@
-# Final Report Rewrite
+# Final Report 
 
 ## Restaurant Queue Simulation Project
 
