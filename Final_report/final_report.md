@@ -104,13 +104,17 @@ The codebase in `Modeling&Coding` contains the main implementation of the projec
 
 #### 5.1 Main Program Flow
 
-The entry point is `main.py`. The program first asks the user whether dining time should be random or fixed, and then asks how data should be loaded. The supported input modes are:
+The executable workflow of the project contains three connected stages: data preparation, simulation execution, and result presentation.
+
+Before the main simulation begins, the project also provides a separate data-generation utility in `Testing/data_generate.py`. This script is used to generate synthetic restaurant and customer CSV files at three scales, namely `small`, `medium`, and `large`. In this sense, the overall pipeline does not begin only from manual or file input; it may also begin from automatically generated testing data prepared in advance for later simulation.
+
+The main simulation entry point is `main.py`. The program first asks the user whether dining time should be random or fixed, and then asks how data should be loaded. The supported input modes are:
 
 - manual input from the console
 - CSV input
 - default CSV files
 
-After loading data, the program sends the restaurant and customer datasets into the packaging and simulation pipeline. It then performs performance analysis and generates several visual outputs.
+After loading data, the program sends the restaurant and customer datasets into the packaging and simulation pipeline. It then performs performance analysis and, at the final stage, generates several visualization outputs.
 
 #### 5.2 Data Input and Preprocessing
 
@@ -189,6 +193,22 @@ The repository already includes generated CSV datasets for all three scales. Bas
 - the large dataset contains 75 restaurants and 15,462 customer groups
 
 This testing setup shows that the project was designed to move beyond toy examples and to explore the behavior of different strategies under larger workloads.
+
+It is therefore more accurate to view `data_generate.py` not as an isolated helper file, but as the first stage of the testing-oriented workflow. It prepares the input data used by the rest of the system and supports repeated simulation under different workload scales.
+
+#### 5.8 Output and Visualization Code
+
+In addition to numerical output printed in the terminal, the project also includes a dedicated visualization layer for the final stage of analysis. After the main simulation is completed, `main.py` calls several plotting modules to present the results in graphical form.
+
+These visualization files include:
+
+- `visualise.py`, which draws occupation-rate curves over time
+- `plot_table_utilization_line.py`, which presents table utilization as a time-series line chart
+- `plot_table_utilization_bar.py`, which compares average utilization across table types
+- `plot_waiting_time_density.py`, which shows the distribution of customer waiting times
+- `plot_queue_length_over_time.py`, which visualizes the change of queue length over time
+
+This means that the output stage of the project is not limited to raw simulation records. Instead, the system attempts to transform the results into interpretable charts that make it easier to compare restaurant behavior and strategy performance. From the perspective of the final report, these visualization scripts are important because they provide the basis for future case-study discussion and comparative analysis.
 
 ### 6. Case Study and Limitation Analysis
 
