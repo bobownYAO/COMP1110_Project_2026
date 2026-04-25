@@ -1,0 +1,16 @@
+name,strategy,open_time,table_size,table_number
+R1,vip,0,A,9
+R1,vip,0,B,4
+R1,vip,0,C,4
+R2,vip,7,A,9
+R2,vip,7,B,9
+R2,vip,7,C,4
+R3,vip,1,A,8
+R3,vip,1,B,5
+R3,vip,1,C,3
+R4,vip,3,A,14
+R4,vip,3,B,8
+R4,vip,3,C,5
+R5,vip,2,A,10
+R5,vip,2,B,7
+R5,vip,2,C,4
