@@ -3,7 +3,7 @@ import numpy as np
 
 import io_file
 import output_file
-import visualise
+import plot_occupation
 import plot_table_utilization_line
 import plot_table_utilization_bar
 import plot_waiting_time_density
@@ -54,7 +54,7 @@ def __main__():
     raw_data=io_file.package(restaurant, customer)
     output_file.analysis(raw_data, restaurant, customer)
 
-    plot_occupation(raw_data, restaurant, save_path="outputs/occupation_rate.png")
+    plot_occupation.plot_occupation(raw_data, restaurant, save_path="outputs/occupation_rate.png")
     plot_table_utilization_line.plot_table_utilization_line(
         raw_data, restaurant, save_path="table_utilization_line.png"
     )
