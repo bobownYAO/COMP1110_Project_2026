@@ -54,7 +54,7 @@ def __main__():
     raw_data=io_file.package(restaurant, customer)
     output_file.analysis(raw_data, restaurant, customer)
 
-    visualise.plot_occupation(raw_data, restaurant)
+    plot_occupation(raw_data, restaurant, save_path="outputs/occupation_rate.png")
     plot_table_utilization_line.plot_table_utilization_line(
         raw_data, restaurant, save_path="table_utilization_line.png"
     )
