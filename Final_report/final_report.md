@@ -407,7 +407,132 @@ Final Command:   Single Snake should be the default operating logic. It offers t
 
 #### 6.5 Long vs Short Arrival Intervals: Demand Intensity
 
+##### 1. Executive Summary
+ 
+The revised interpretation is customer-flow oriented. The central question is not whether unused table capacity should be reallocated, but which queueing strategy keeps most customers from waiting too long under different arrival-density conditions. Short interval represents a high-pressure situation because many groups arrive in a compressed time window. Long interval represents a low-pressure situation because arrivals are spread out and the restaurant has more time to absorb demand. The medium or baseline condition is treated only as the reference point between these two stress extremes.
+ 
+The main finding is clear. Under short-interval pressure, all strategies suffer a major increase in waiting time, so none of them fully prevents congestion. However, Single Snake performs best among the tested short-interval strategies: its average wait time is 136.94 minutes, compared with 150.73 minutes for Size-Based and 150.36 minutes for VIP. Its average queue length is also lower, at 31.21 waiting groups compared with about 35.4 for the other two strategies. This suggests that Single Snake has the strongest high-pressure resilience in the current simulations.
+ 
+Under long-interval conditions, the result is different. All three strategies create an almost zero-waiting experience. Average wait times are only 0.42 to 0.43 minutes, and average queue lengths are 0.05 waiting groups for all three. In practical terms, Single Snake, Size-Based and VIP all achieve smooth low-pressure operation. The choice under low pressure therefore depends less on waiting-time reduction and more on operational simplicity or service-design goals.
+ 
+**Bottom line: choose Single Snake when the restaurant expects a concentrated arrival wave. Under dispersed arrivals, any of the three strategies can deliver near-zero waiting, so the simplest rule is usually sufficient unless the restaurant has a specific reason to use priority or segmentation.**
+ 
+##### 2. Analytical Framework
+ 
+The report separates two decision lenses. First, high-pressure resilience asks whether a strategy can slow the rapid build-up of waiting time when arrivals become highly concentrated. This is not judged only by table utilization, because high utilization can coexist with poor customer experience if the queue grows sharply. The stronger indicators are average wait time, average queue length, and whether the queue remains persistent across the run.
+ 
+Second, low-pressure efficiency asks whether the strategy can keep customer flow nearly frictionless when arrivals are spread out. In that condition, the best strategy is not the one that maximizes table use, but the one that keeps waiting near zero while avoiding unnecessary operational complexity.
+ 
+| Metric | Why it matters for this revised analysis | How it should be read |
+|--------|------------------------------------------|----------------------|
+| Average wait time | Direct customer-experience measure. | Lower is better, especially under short-interval pressure. |
+| Average queue length | Shows whether congestion is temporary or persistent. | Lower and shorter-lived queues indicate stronger resilience. |
+| Waiting-time density | Shows whether most customers wait little or whether many customers face long waits. | The left side of the distribution matters more than a single mean. |
+| Table utilization / occupation rate | Used as a diagnostic of flow, not as a recommendation to change table counts. | High values can explain pressure; low values under long intervals support smooth operation. |
+ 
+This distinction matters because a strategy can look efficient from a resource perspective while still being weak from a customer perspective. The present report therefore prioritizes waiting and queue outcomes over capacity-allocation conclusions.
+ 
+##### 3. High-Pressure Resilience: Short-Interval Arrivals
+ 
+###### 3.1 Core comparison under high pressure
+ 
+In the short-interval scenario, arrival density is the stress factor. The restaurant faces a concentrated wave of customers, so the operational challenge is to prevent waiting time from growing sharply for most groups. The comparison across the three short-interval datasets shows that Single Snake is the strongest option, although the difference should be interpreted as relative resilience rather than complete congestion elimination.
+ 
+| Short-interval dataset | Avg wait time (min) | Avg queue length (groups) | Avg table utilization (%) | Avg occupation rate (%) | Interpretation |
+|------------------------|---------------------|---------------------------|---------------------------|-------------------------|----------------|
+| single_short | 136.94 | 31.21 | 56.35 | 54.44 | Best short-pressure result. Waiting remains high, but queue build-up is smaller. |
+| size_base_short | 150.73 | 35.44 | 57.63 | 55.71 | Higher utilization does not translate into better customer waiting. |
+| vip_short | 150.36 | 35.40 | 57.76 | 55.83 | Priority structure does not reduce overall waiting under compressed arrivals. |
+ 
+Single Snake reduces average waiting time by about 9.1% compared with Size-Based and about 8.9% compared with VIP. It also reduces average queue length by about 11.9% compared with both alternatives. These differences are meaningful because the table utilization and occupation rates are very similar across the three short-interval cases. In other words, Single Snake is not simply "less busy"; it handles the same pressure with a smaller customer queue.
+ 
+![comparison_avg_wait_time]
+ 
+###### 3.2 Queue build-up is the key resilience signal
+ 
+The average queue-length chart confirms the same pattern. Under short intervals, queue size rises from almost zero in the long cases to more than 30 waiting groups in the short cases. Single Snake records the lowest short-interval queue average. This matters because queue length is the mechanism through which waiting time accumulates. Once the queue becomes large and persistent, later arrivals inherit the delay created by earlier arrivals.
+ 
+![comparison_avg_queue_length]
+ 
+###### 3.3 Detailed reading of Single Snake under short pressure
+ 
+The Single Snake short-interval time-series plot shows why this strategy should be described as relatively resilient, not fully safe. In most replications, the queue rises quickly during the early arrival wave, reaches a high peak, and then gradually clears. The best replication, R4, has a much lower average queue and lower mean waiting time, but the other runs still show substantial congestion. This indicates that Single Snake is better at suppressing queue growth than the other short strategies, but it remains vulnerable when the arrival burst is too compressed.
+ 
+![single_short_queue_length_over_time]
+ 
+The practical interpretation is that Single Snake gives the restaurant the best chance of limiting the damage during a high-pressure wave. It creates one shared queue, which helps reduce mismatch between customer groups and service opportunities. However, when arrivals are extremely compressed, even the better queueing rule cannot fully offset the pressure. The strategy choice improves the outcome, but the arrival pattern still dominates the system.
+ 
+###### 3.4 Waiting-time density: reducing the majority burden
+ 
+Waiting-time density adds a more customer-centered view. The mean waiting time for Single Snake short arrivals is still high, but the distribution shows that the strategy keeps a meaningful mass of customers at lower waiting times compared with a situation where the whole distribution shifts further right. This is the specific sense in which it reduces the burden for the majority of customers: it does not eliminate long waits, but it limits the severity of the queue relative to the other tested short-interval strategies.
+ 
+![single_short_waiting_time_density]
+ 
+**Therefore, the correct high-pressure conclusion is not "Single Snake solves the queue." The stronger and more defensible conclusion is: Single Snake is the most resilient tested strategy under compressed arrivals because it produces the lowest average wait time and the lowest average queue length while operating under a similar utilization level.**
+ 
+##### 4. Role of the Medium/Baseline Condition
+ 
+The medium-density baseline is used as the quantitative reference point between two stress extremes. Long interval represents dispersed arrivals; short interval represents compressed arrivals. The relevant question is not whether lower utilization suggests a different table mix. The relevant question is how much each strategy changes customer waiting time when the same restaurant system is exposed to lower or higher arrival pressure.
+ 
+The comparison below uses the average waiting time from each strategy under Long, Medium/Baseline and Short arrival densities. Net change is calculated as T_short - T_medium and T_long - T_medium. Because the original waiting-time outputs are in minutes, the net changes are also converted into seconds for easier interpretation. The percentage change is calculated relative to the medium baseline.
+ 
+| Strategy | T_long (min) | T_medium (min) | T_short (min) | T_s - T_m (sec) | Short growth (%) | T_l - T_m (sec) | Long reduction (%) |
+|----------|--------------|----------------|---------------|-----------------|------------------|-----------------|-------------------|
+| Single Snake | 0.42 | 42.67 | 136.94 | +5,656 | +220.9% | -2,535 | 99.02% |
+| Size-based | 0.43 | 45.55 | 150.73 | +6,311 | +230.9% | -2,707 | 99.06% |
+| VIP | 0.43 | 45.40 | 150.36 | +6,297 | +231.2% | -2,698 | 99.05% |
+ 
+This table changes the interpretation of the baseline section. Under high pressure, Single Snake has the smallest waiting-time growth rate: +220.9% from the medium baseline to the short-arrival case. Size-based grows by +230.9%, while VIP grows by +231.2%. On the strict resilience criterion, the lowest growth rate is the strongest result; therefore, Single Snake is the most resilient strategy against compressed arrivals. It does not prevent congestion, but it suppresses the escalation of waiting time better than the other two strategies.
+ 
+Under low pressure, the reduction rate is extremely high for all three strategies. Size-based has the largest proportional reduction from medium to long arrivals, at 99.06%, followed very closely by VIP at 99.05% and Single Snake at 99.02%. If the criterion is purely numerical, Size-based is marginally the best low-pressure flow-efficiency strategy. However, the gap is less than 0.05 percentage points, so the practical conclusion is that all three strategies reach a near-zero-wait state when arrivals are sufficiently dispersed.
+ 
+![baseline_size_base_queue_length_over_time]
+ 
+**Therefore, the baseline condition is not a recommendation target by itself. Its value is analytical: it makes the high-pressure and low-pressure conclusions measurable. Compared with medium arrivals, Single Snake shows the lowest short-arrival growth rate and is therefore the strongest high-pressure resilience option. Compared with medium arrivals, Size-based shows the largest long-arrival reduction rate, but the difference is so small that all strategies can be described as operationally smooth under low pressure.**
+ 
+##### 5. Low-Pressure Efficiency: Long-Interval Arrivals
+ 
+###### 5.1 Core comparison under low pressure
+ 
+The long-interval condition represents dispersed arrivals. Here the operational goal is different: the best strategy is the one that allows customers to be seated with almost no waiting and keeps the restaurant flow stable. The results are extremely close across all three strategies.
+ 
+| Long-interval dataset | Avg wait time (min) | Avg queue length (groups) | Avg table utilization (%) | Avg occupation rate (%) | Interpretation |
+|----------------------|---------------------|---------------------------|---------------------------|-------------------------|----------------|
+| single_long | 0.42 | 0.05 | 25.96 | 25.17 | Near-zero wait. Smooth operation. |
+| size_base_long | 0.43 | 0.05 | 25.96 | 25.17 | Near-zero wait. No practical difference from Single Snake. |
+| vip_long | 0.43 | 0.05 | 25.96 | 25.17 | Near-zero wait. Priority logic does not harm the average, but does not improve it either. |
+ 
+The difference between 0.42 and 0.43 minutes is operationally negligible. Using the strict percentage-reduction criterion from Section 4, Size-based is marginally the strongest low-pressure option because its waiting time falls by 99.06% from the medium baseline. However, VIP reaches 99.05% and Single Snake reaches 99.02%, so the practical conclusion remains that all three strategies achieve a near-zero-waiting experience under long-interval arrivals.
+ 
+![single_long_queue_length_over_time]
+ 
+###### 5.2 Why the long-interval scenario is fundamentally different
+ 
+The long-arrival waiting-time density is concentrated close to zero. This is the clearest evidence of low-pressure efficiency. In this condition, the system has enough time between arrivals to absorb demand before the next group arrives. As a result, queueing strategy becomes less decisive. The restaurant does not need a powerful congestion-control mechanism because congestion rarely forms in the first place.
 
+![single_long_waiting_time_density]
+ 
+**The implication is not that long-arrival restaurants should reduce tables or redesign capacity. The relevant conclusion is simpler: when customer arrivals are sufficiently dispersed, the tested strategies all keep the system smooth. In this situation, operational simplicity becomes more important than aggressive queue management.**
+ 
+##### 6. Utilization as a Supporting, Not Leading, Indicator
+ 
+The utilization charts remain useful, but they should not drive the main conclusion. Under short intervals, utilization and occupation are higher, yet the customer experience is worse because queues grow sharply. Under long intervals, utilization and occupation are lower, yet customer experience is better because waiting is almost zero. This shows that utilization is a diagnostic variable, not the primary performance measure for this question.
+ 
+Table-type utilization also shows that some table categories are used more heavily than others, especially Table C. This helps explain why congestion can appear even when the overall restaurant is not at full theoretical capacity. However, the report does not convert this into a table-mix recommendation, because the requested focus is strategy performance under fixed restaurant conditions.
+ 
+![all_datasets_table_utilization_bar]
+ 
+##### 7. Final Recommendation
+ 
+| Question | Best-supported answer | Reason |
+|----------|----------------------|---------|
+| High-Pressure Resilience | Single Snake | It produces the lowest short-interval average wait time and queue length while facing similar utilization pressure. |
+| Low-Pressure Efficiency | Size-based is marginally best by percentage reduction, but all three are practically acceptable. | Size-based reduces waiting by 99.06% from medium to long, while VIP reaches 99.05% and Single Snake reaches 99.02%. |
+| Overall operating logic | Use Single Snake as the safer default when arrival density is uncertain or likely to be concentrated. | It performs best under pressure and does not create a disadvantage under low pressure. |
+ 
+The strongest overall default strategy is therefore Single Snake. It is not because it maximizes utilization, but because it offers the best balance across the two customer-flow conditions: it has the lowest short-pressure growth rate at +220.9% and still delivers near-zero waiting under long-arrival conditions. Size-based is marginally strongest under low pressure by reduction rate, but the low-pressure differences are too small to outweigh the clearer advantage of Single Snake under compressed arrivals.
+ 
+This conclusion should be stated carefully. The simulation does not prove that Single Snake will eliminate queues in every high-pressure situation. It shows that, among the tested alternatives and using the provided output charts, Single Snake reduces the severity of the queue more effectively than the other strategies when arrivals are highly concentrated.
 
 
 #### 6.6 Limitation Analysis
