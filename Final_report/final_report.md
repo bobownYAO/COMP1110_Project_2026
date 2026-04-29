@@ -211,13 +211,12 @@ The codebase in `Modeling&Coding` contains the main implementation of the projec
 
 The executable workflow of the project contains three connected stages: data preparation, simulation execution, and result presentation.
 
-Before the main simulation begins, the project also provides a separate data-generation utility in `Testing/data_generate.py`. This script is used to generate synthetic restaurant and customer CSV files at three scales, namely `small`, `medium`, and `large`. In this sense, the overall pipeline does not begin only from manual or file input; it may also begin from automatically generated testing data prepared in advance for later simulation.
+Before the main simulation begins, the project also provides a separate data-generation utility in `Testing/data_generate.py`. This script is used to generate synthetic restaurant and customer CSV files under configurable strategy, restaurant-count, customer-count, VIP-ratio, group-size, and arrival-interval settings. In this sense, the overall pipeline does not begin only from manual or file input; it may also begin from automatically generated testing data prepared in advance for later simulation.
 
 The main simulation entry point is `main.py`. The program first asks the user whether dining time should be random or fixed, and then asks how data should be loaded. The supported input modes are:
 
 - manual input from the console
-- CSV input
-- default CSV files
+- CSV input with explicit restaurant and customer file paths
 
 After loading data, the program sends the restaurant and customer datasets into the packaging and simulation pipeline. It then performs performance analysis and, at the final stage, generates several visualization outputs.
 
@@ -227,6 +226,7 @@ The file `io_file.py` is responsible for:
 
 - reading restaurant and customer CSV files
 - reading structured console input
+- validating required columns, numeric fields, strategies, table categories, and restaurant references
 - preprocessing dining time
 - resetting restaurant open time to the earliest customer arrival
 - dispatching each restaurant to the correct queue strategy
@@ -269,13 +269,13 @@ The file `output_file.py` provides the main numerical analysis layer. For each r
 - average occupation rate
 - minute-by-minute occupation detail
 
-This means the project already contains the beginnings of an evaluation framework, even though the final case-based comparison has not yet been written into the report.
+This means the project contains a basic evaluation framework that supports the later case-study comparison in Section 6.
 
 #### 5.6 Visualization Layer
 
 Several plotting scripts extend the project beyond raw table output:
 
-- `visualise.py` plots occupation rate over time
+- `plot_occupation.py` plots occupation rate over time
 - `plot_table_utilization_line.py` plots time-series table utilization
 - `plot_table_utilization_bar.py` plots average utilization by table type
 - `plot_waiting_time_density.py` plots the density of customer waiting times
@@ -285,21 +285,13 @@ These files show that the project aimed not only to simulate queue behavior, but
 
 #### 5.7 Testing Assets
 
-The `Testing` folder contains both a testing description and a data-generation script. The file `data_generate.py` defines three testing scales:
+The `Testing` folder contains a testing description, scenario-based datasets, generated output charts, a data-generation script, and input-validation sample cases. The main scenario folders include baseline comparison, higher VIP ratio, more small groups, and long/short arrival intervals.
 
-- `small`
-- `medium`
-- `large`
+The file `data_generate.py` is used to create synthetic restaurant and customer CSV files from interactive choices. It allows the team to vary the queue strategy, number of restaurants, number of customers, VIP probability, group-size distribution, and arrival interval mode.
 
-The repository already includes generated CSV datasets for all three scales. Based on the current files:
+The repository also includes pytest-based sample cases for input validation. These tests check that valid files can be loaded and that malformed inputs, such as missing columns, invalid strategies, invalid table types, invalid numeric values, and unknown restaurant references, are rejected before the simulation begins.
 
-- the small dataset contains 3 restaurants and 194 customer groups
-- the medium dataset contains 14 restaurants and 1,806 customer groups
-- the large dataset contains 75 restaurants and 15,462 customer groups
-
-This testing setup shows that the project was designed to move beyond toy examples and to explore the behavior of different strategies under larger workloads.
-
-It is therefore more accurate to view `data_generate.py` not as an isolated helper file, but as the first stage of the testing-oriented workflow. It prepares the input data used by the rest of the system and supports repeated simulation under different workload scales.
+This testing setup shows that the project was designed to move beyond toy examples and to explore the behavior of different strategies under controlled scenarios. It is therefore more accurate to view `data_generate.py` and the sample test cases as supporting parts of the simulation workflow rather than isolated helper files.
 
 #### 5.8 Output and Visualization Code
 
@@ -307,7 +299,7 @@ In addition to numerical output printed in the terminal, the project also includ
 
 These visualization files include:
 
-- `visualise.py`, which draws occupation-rate curves over time
+- `plot_occupation.py`, which draws occupation-rate curves over time
 - `plot_table_utilization_line.py`, which presents table utilization as a time-series line chart
 - `plot_table_utilization_bar.py`, which compares average utilization across table types
 - `plot_waiting_time_density.py`, which shows the distribution of customer waiting times
