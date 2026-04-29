@@ -14,6 +14,15 @@ The repository also includes generated testing datasets and visualization script
 
 ## 2. Group Members and Roles
 
+The project work was organized around research, modeling, coding, testing, case studies, and report writing. The planned division of work is summarized below.
+
+| Member | Main research focus | Modeling / coding focus | Report focus |
+|---|---|---|---|
+| Yao Lijia | VIP strategy and THE GULU case study | File input, data model, data generation, database management, Algorithm 1, and video demo | Vision, optimization, and data-model explanation |
+| Yu Wei | Size-based queue strategy and Meituan / KeeTa case studies | Algorithm 2, sample testing, and group report writing | Problem definition, project significance, and algorithm explanation |
+| Jiang Hongyi | Single snake queue, table sharing, and Meiwei Bu Yong Deng case study | Algorithm 3 and scenario design | Evaluation, limitations, and algorithm explanation |
+| Zhang Zhanhao | Single snake strategy and Haidilao case study | File output, case simulation, and output analysis | Comparative analysis and case-simulation explanation |
+
 ## 3. Language and Environment
 
 The project is written in Python 3. The current local environment used during inspection is Python 3.13.9, but the code only relies on standard Python syntax and common data-analysis libraries.
@@ -275,3 +284,15 @@ Case groups studied:
 Overall, the case studies do not prove that one strategy is always best. The main conclusion is that `single_snake` is the safest default when arrival density is uncertain or likely to be concentrated, because it reduces queue build-up better than the other tested strategies. When arrivals are well spread out, strategy choice matters much less because all three approaches can keep waiting time close to zero.
 
 ## 10. Limitations and Future Improvements
+
+The project provides a working simulation framework, but it is still a simplified academic model. The main limitations and possible future improvements are summarized below.
+
+| Limitation | Future improvement |
+|---|---|
+| Code structure is still script-oriented. Some responsibilities, such as input handling, strategy dispatching, analysis, and plotting, are separated into files but could be organized more clearly. | Refactor the project into clearer modules such as data validation, simulation engine, strategies, analysis, and visualization. This would make the code easier to maintain and extend. |
+| Input format is still strict. The program expects fixed CSV columns, fixed strategy names, and fixed table categories `A`, `B`, and `C`. | Support more flexible configuration, command-line arguments, custom table labels, and clearer user guidance for fixing invalid input files. |
+| The simulation is simplified and cannot fully reproduce real restaurant behavior. It does not model cancellations, customers leaving the queue, late arrivals, party-size changes, reservations, staff capacity, kitchen speed, or table sharing. | Add more realistic behaviors such as customer abandonment, reservation/no-show handling, dynamic table assignment, table sharing, staff constraints, and peak-hour arrival patterns. |
+| Dining time is estimated with a simple formula based mainly on group size. The random mode only adds a small random offset. | Use more realistic probability distributions for dining time, and run repeated simulations with different random seeds to compare average results. |
+| Strategy coverage is limited to `single_snake`, `size_base`, and `vip`. Other strategies discussed during research are not fully implemented. | Add hybrid strategies, such as VIP plus single snake, size-based fallback rules, or allowing small groups to use larger tables after a maximum waiting threshold. |
+| Evaluation outputs are not fully standardized across all case studies. Some cases have detailed processed summaries, while others rely more on generated figures. | Export consistent summary metrics for every case, including average wait time, queue length, table utilization, occupation rate, and output CSV files. |
+| The user workflow is mostly console-based. Users need to type file paths manually and inspect output files separately. | Add command-line options, batch-running support, a default output directory, or a simple GUI/web dashboard for easier use and result comparison. |

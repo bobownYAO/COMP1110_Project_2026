@@ -1,7 +1,0 @@
-name,strategy,open_time,table_size,table_number
-R1,vip,0,A,5
-R1,vip,0,B,3
-R1,vip,0,C,2
-R2,vip,0,A,2
-R2,vip,0,B,1
-R2,vip,0,C,2
