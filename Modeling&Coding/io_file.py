@@ -5,6 +5,106 @@ import strategy_vip
 import strategy_single_snake
 import strategy_size_base
 
+RESTAURANT_COLUMNS = ["name", "strategy", "open_time", "table_size", "table_number"]
+CUSTOMER_COLUMNS = ["index", "restaurant", "vip", "number", "arrival_time"]
+NUMERIC_RESTAURANT_COLUMNS = ["open_time", "table_number"]
+NUMERIC_CUSTOMER_COLUMNS = ["index", "vip", "number", "arrival_time"]
+VALID_STRATEGIES = {"vip", "single_snake", "size_base"}
+VALID_TABLE_SIZES = {"A", "B", "C"}
+
+
+def _check_required_columns(df, required_columns, label):
+    missing = [col for col in required_columns if col not in df.columns]
+    if missing:
+        raise ValueError(f"{label} data is missing required column(s): {', '.join(missing)}")
+
+
+def _check_not_empty(df, label):
+    if df.empty:
+        raise ValueError(f"{label} data must contain at least one row.")
+
+
+def _convert_numeric_columns(df, numeric_columns, label):
+    for col in numeric_columns:
+        try:
+            df[col] = pd.to_numeric(df[col], errors="raise")
+        except (ValueError, TypeError) as exc:
+            raise ValueError(f"{label} column '{col}' must contain numeric values.") from exc
+
+
+def _check_no_missing_values(df, columns, label):
+    missing_columns = [col for col in columns if df[col].isna().any()]
+    if missing_columns:
+        raise ValueError(f"{label} data has missing value(s) in: {', '.join(missing_columns)}")
+
+
+def _check_non_negative(df, columns, label):
+    for col in columns:
+        if (df[col] < 0).any():
+            raise ValueError(f"{label} column '{col}' cannot contain negative values.")
+
+
+def _validate_restaurant_data(restaurant):
+    _check_not_empty(restaurant, "Restaurant")
+    _check_required_columns(restaurant, RESTAURANT_COLUMNS, "Restaurant")
+    _check_no_missing_values(restaurant, RESTAURANT_COLUMNS, "Restaurant")
+    _convert_numeric_columns(restaurant, NUMERIC_RESTAURANT_COLUMNS, "Restaurant")
+    _check_non_negative(restaurant, NUMERIC_RESTAURANT_COLUMNS, "Restaurant")
+
+    invalid_strategies = sorted(set(restaurant["strategy"]) - VALID_STRATEGIES)
+    if invalid_strategies:
+        raise ValueError(
+            "Restaurant column 'strategy' contains invalid value(s): "
+            + ", ".join(map(str, invalid_strategies))
+        )
+
+    invalid_table_sizes = sorted(set(restaurant["table_size"]) - VALID_TABLE_SIZES)
+    if invalid_table_sizes:
+        raise ValueError(
+            "Restaurant column 'table_size' contains invalid value(s): "
+            + ", ".join(map(str, invalid_table_sizes))
+        )
+
+    for restaurant_name, rows in restaurant.groupby("name"):
+        missing_table_sizes = sorted(VALID_TABLE_SIZES - set(rows["table_size"]))
+        if missing_table_sizes:
+            raise ValueError(
+                f"Restaurant '{restaurant_name}' is missing table type(s): "
+                + ", ".join(missing_table_sizes)
+            )
+
+
+def _validate_customer_data(customer, restaurant):
+    _check_not_empty(customer, "Customer")
+    _check_required_columns(customer, CUSTOMER_COLUMNS, "Customer")
+    _check_no_missing_values(customer, CUSTOMER_COLUMNS, "Customer")
+    _convert_numeric_columns(customer, NUMERIC_CUSTOMER_COLUMNS, "Customer")
+    _check_non_negative(customer, NUMERIC_CUSTOMER_COLUMNS, "Customer")
+
+    invalid_vip_values = sorted(set(customer["vip"]) - {0, 1})
+    if invalid_vip_values:
+        raise ValueError(
+            "Customer column 'vip' must contain only 0 or 1. Invalid value(s): "
+            + ", ".join(map(str, invalid_vip_values))
+        )
+
+    if (customer["number"] <= 0).any():
+        raise ValueError("Customer column 'number' must be greater than 0.")
+
+    missing_restaurants = sorted(set(customer["restaurant"]) - set(restaurant["name"]))
+    if missing_restaurants:
+        raise ValueError(
+            "Customer data references unknown restaurant(s): "
+            + ", ".join(map(str, missing_restaurants))
+        )
+
+
+def validate_input_data(restaurant, customer):
+    _validate_restaurant_data(restaurant)
+    _validate_customer_data(customer, restaurant)
+    return restaurant, customer
+
+
 #load data
 def read_file(filepath_restaurant,filepath_customer,random_state):
     try:
@@ -15,13 +115,11 @@ def read_file(filepath_restaurant,filepath_customer,random_state):
     except pd.errors.ParserError as exc:
         raise ValueError("Input CSV format is invalid.") from exc
 
+    validate_input_data(restaurant, customer)
     return data_process(restaurant,customer, random_state)
 
 
 def read_console(random_state):
-    restaurant_columns = ["name", "strategy", "open_time", "table_size", "table_number"]
-    customer_columns = ["index", "restaurant", "vip", "number", "arrival_time"]
-
     def _read_rows(prompt, columns):
         rows = []
         print(prompt)
@@ -44,18 +142,11 @@ def read_console(random_state):
 
         return pd.DataFrame(rows, columns=columns)
 
-    restaurant = _read_rows("Enter restaurant rows:", restaurant_columns)
-    customer = _read_rows("Enter customer rows:", customer_columns)
+    restaurant = _read_rows("Enter restaurant rows:", RESTAURANT_COLUMNS)
+    customer = _read_rows("Enter customer rows:", CUSTOMER_COLUMNS)
 
-    numeric_restaurant_cols = ["open_time", "table_number"]
-    numeric_customer_cols = ["index", "vip", "number", "arrival_time"]
-
-    for col in numeric_restaurant_cols:
-        restaurant[col] = pd.to_numeric(restaurant[col], errors="raise")
-    for col in numeric_customer_cols:
-        customer[col] = pd.to_numeric(customer[col], errors="raise")
-
-    return restaurant,data_process(customer, random_state)
+    validate_input_data(restaurant, customer)
+    return data_process(restaurant, customer, random_state)
 
 #data processing
 def data_process(restaurant ,customer, random_state):

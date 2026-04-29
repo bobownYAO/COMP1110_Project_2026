@@ -1,0 +1,4 @@
+name,strategy,open_time,table_size,table_number
+R1,size_base,0,A,2
+R1,size_base,0,B,1
+R1,size_base,0,C,1

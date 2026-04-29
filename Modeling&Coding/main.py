@@ -22,7 +22,7 @@ def __main__():
         else:
             print("Invalid input! Please type again.")
 
-    print("How will you load the data?\nA) from console, B) from csv file, C) by default")
+    print("How will you load the data?\nA) from console, B) from csv file")
     while 1:
         ans = input().strip().upper()
         if ans == "A":
@@ -32,12 +32,9 @@ def __main__():
                 print(f"Invalid console input: {exc}")
                 continue
             break
-        elif ans == "B" or ans == "C":
-            filepath_restaurant = r"Project\github\COMP1110_Project_2026\Modeling&Coding\testdata_restaurant.csv"
-            filepath_customer = r"Project/github/COMP1110_Project_2026/Modeling&Coding/testdata_customer.csv"
-            if ans == "B":
-                filepath_restaurant = input("Enter restaurant CSV path: ").strip()
-                filepath_customer = input("Enter customer CSV path: ").strip()
+        elif ans == "B":
+            filepath_restaurant = input("Enter restaurant CSV path: ").strip()
+            filepath_customer = input("Enter customer CSV path: ").strip()
             try:
                 restaurant, customer = io_file.read_file(filepath_restaurant, filepath_customer, random_state)
             except (FileNotFoundError, ValueError) as exc:
