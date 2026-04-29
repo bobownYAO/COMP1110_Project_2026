@@ -30,6 +30,7 @@ def algorithm(restaurant, customer):
     customer["final_wait_time"] = np.nan
     customer["start_service_time"] = np.nan
     customer["leave_time"] = np.nan
+    customer["assigned_table_type"] = None
 
     # 把餐厅的桌子信息整理成 dict，比如 {"A": 3, "B": 2, "C": 1}
     table = dict(zip(restaurant["table_size"], restaurant["table_number"]))
@@ -75,6 +76,7 @@ def algorithm(restaurant, customer):
                 customer.loc[customer_id, "final_wait_time"] = now_time - arrive_time
                 customer.loc[customer_id, "start_service_time"] = now_time
                 customer.loc[customer_id, "leave_time"] = now_time + dinning_time
+                customer.loc[customer_id, "assigned_table_type"] = table_index
 
                 queue_state.push_occupied(
                     table_index,

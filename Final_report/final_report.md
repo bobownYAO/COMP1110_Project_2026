@@ -12,6 +12,15 @@ This project addresses that problem through simulation. Instead of designing a f
 
 The research stage of the project was broad and intentionally divided across several queue-management ideas and real-world applications. Each team member investigated a distinct strategic direction, examining both the theoretical foundations and practical implementations in modern restaurant systems. The materials in the `Research` folder reveal four complementary research streams that together establish the conceptual framework for the simulation project.
 
+The main research comparison is summarized below, using the Topic C criteria of waiting time, utilization, fairness, peak-hour behavior, and operational complexity.
+
+| Strategy / approach | Expected wait-time effect | Table-utilization effect | Fairness and customer perception | Peak-hour behavior | Operational complexity | Main limitation in this project |
+|---|---|---|---|---|---|---|
+| Single snake queue | Reduces mismatch delay by pooling all waiting groups into one line. | Can use spare larger-table capacity for smaller groups, improving flexibility. | Strong FCFS fairness because one visible order is maintained. | Most resilient in the tested compressed-arrival scenarios. | Simple for customers and staff to understand. | A long visible queue may look intimidating, and large parties can still wait if large tables are scarce. |
+| Size-based queues | Can reduce wait when each group-size category has matching table supply. | Efficient when demand mix matches table mix, but rigid when one category dominates. | Fair within each size queue, but later small groups may be seated before earlier large groups. | Vulnerable when one table category becomes a bottleneck. | Moderate: staff must manage several queues. | Strict category matching can leave tables idle while another queue grows. |
+| VIP priority queue | Reduces wait for high-priority customers in the same table category. | Does not increase physical capacity, so total throughput may remain unchanged. | Commercially useful but may reduce perceived fairness for non-VIP customers. | Priority can reshuffle service order but cannot solve capacity bottlenecks. | Higher: staff must define and explain priority rules. | If many customers are VIP, the priority advantage is diluted. |
+| Table sharing (conceptual only) | Could reduce waits by filling unused seats at partially occupied tables. | Potentially high utilization because empty seats can be reused. | Depends heavily on culture and communication; some customers may dislike sharing. | Useful in dense restaurants and food halls. | High: needs seat-level tracking and social/operational rules. | Researched but not implemented; the simulation keeps one group per table for simplicity. |
+
 #### 2.1 Single Snake Queue Strategy
 
 **Theoretical Foundation and Mathematical Logic**
@@ -141,7 +150,20 @@ In other words, the final code reflects a narrowed and more feasible subset of t
 
 The modeling stage translated the research ideas into a simulation structure that could be executed repeatedly on different datasets.
 
-#### 3.1 Basic Entities
+#### 3.1 Modeling Assumptions
+
+The implementation intentionally uses a simplified model so that the three queue strategies can be compared under controlled conditions:
+
+- Tables are grouped into fixed `A`, `B`, and `C` categories.
+- No table sharing is used in the implemented simulation; one customer group occupies one table.
+- Customers do not cancel, walk away, change party size, or make reservations.
+- Every arriving group eventually waits until it is served.
+- Time advances in discrete integer steps rather than real time.
+- Dining time is calculated from group size, with an optional random offset.
+- `vip` priority is applied only within the same table category, not globally across all table types.
+- The simulation records the actual `assigned_table_type` used for each served group so utilization can be calculated from real seating decisions.
+
+#### 3.2 Basic Entities
 
 The simulation uses two core datasets:
 
@@ -156,7 +178,7 @@ In the current model, restaurant tables are grouped into three abstract categori
 
 Customers are then matched to these categories according to group size.
 
-#### 3.2 Time and Service Assumptions
+#### 3.3 Time and Service Assumptions
 
 The system adopts a discrete-time simulation. Time advances in integer steps, and all arrivals up to the current time step are processed together. Dining time is estimated during preprocessing using the following formula:
 
@@ -164,7 +186,7 @@ The system adopts a discrete-time simulation. Time advances in integer steps, an
 
 This means larger parties are assumed to occupy tables for longer periods. The model is intentionally simplified so that the queue logic remains clear and comparable across strategies.
 
-#### 3.3 Queue-State Design
+#### 3.4 Queue-State Design
 
 The central modeling idea is the shared queue state defined in `queue_structure.py`. The `State` class stores:
 
@@ -178,7 +200,7 @@ This design allows the simulation to repeatedly perform three operations:
 2. add newly arrived customers into the correct queue
 3. assign available tables according to the selected strategy
 
-#### 3.4 Strategy Scope
+#### 3.5 Strategy Scope
 
 Although the original research considered four strategic directions, the implemented modeling scope was reduced to three executable strategies:
 
@@ -236,8 +258,9 @@ The `package()` function is the main controller for strategy execution. It group
 - `final_wait_time`
 - `start_service_time`
 - `leave_time`
+- `assigned_table_type`
 
-These three fields form the basis for later analysis and visualization.
+These fields form the basis for later analysis and visualization. The `assigned_table_type` field is especially important for Single Snake because a smaller group may be seated at a larger available table.
 
 #### 5.3 Shared Queue Structure
 
@@ -266,10 +289,12 @@ The file `output_file.py` provides the main numerical analysis layer. For each r
 - maximum waiting time
 - minimum waiting time
 - average waiting time
+- number of served and unserved groups
+- average and maximum queue length
 - average occupation rate
 - minute-by-minute occupation detail
 
-This means the project contains a basic evaluation framework that supports the later case-study comparison in Section 6.
+The same analysis also produces `outputs/summary_metrics_by_restaurant.csv`, which gives a reproducible numerical summary for each restaurant run.
 
 #### 5.6 Visualization Layer
 
@@ -321,6 +346,26 @@ The evaluation focuses on the same indicators used by the output and visualizati
 - waiting-time distribution
 
 The four case groups are not intended to prove that one strategy is always best. Instead, they show how the same strategy may perform differently when demand pressure, VIP ratio, or party-size distribution changes.
+
+To align the evidence more directly with the Topic C guideline, the existing datasets are organized into six paired comparisons. Each pair fixes the main simulation scale and changes one main decision factor or stress factor.
+
+| Pair | Fixed controls | Changed factor | Input evidence | Main metrics | Conclusion |
+|---|---|---|---|---|---|
+| Pair 1: Normal Single Snake vs Size-Based | Normal arrival distribution, same 5 restaurants, 200 customer groups per restaurant, fixed dining time | Queue strategy: `single_snake` vs `size_base` | `Testing/Baseline/testdata_*_single_5r_200c_normal.csv`, `Testing/Baseline/testdata_*_size_base_5r_200c_normal.csv` | Wait time, occupation rate, table utilization, queue length | Single Snake is simpler and more flexible; Size-Based can use matching categories well but is less flexible when a category bottleneck appears. |
+| Pair 2: Normal Single Snake vs VIP | Normal arrival distribution, same scale, fixed dining time | Queue strategy: `single_snake` vs `vip` | `Testing/Baseline/testdata_*_single_5r_200c_normal.csv`, `Testing/Baseline/testdata_*_vip_5r_200c_normal.csv` | Wait time, queue length, VIP service order, utilization | VIP changes service order but does not automatically improve total throughput when capacity is fixed. |
+| Pair 3: Baseline VIP vs MoreVIP | VIP strategy, same restaurant scale, same broad arrival pattern | VIP proportion | `Testing/Baseline/testdata_customer_vip_5r_200c_normal.csv`, `Testing/MoreVIP/testdata_customer_vip_5r_200c_normal.csv` | Average wait, queue length, utilization | Increasing VIP share mostly reshuffles priority and does not remove physical table bottlenecks. |
+| Pair 4: Baseline group mix vs MoreA | Same scale, normal arrivals, same strategy set | Customer group-size distribution, especially more 1-2 person groups | `Testing/Baseline/`, `Testing/Testdata-MoreA/` | Table-type utilization, wait time, queue length | Rigid table-category matching can waste larger tables when small groups dominate. |
+| Pair 5: Long vs Short arrivals | Same restaurant scale, same group-size distribution, same strategy labels | Arrival interval length | `Testing/Testdate-longshort/testdata_*_long.csv`, `Testing/Testdate-longshort/testdata_*_short.csv` | Average wait, max wait, queue length, utilization | Dispersed arrivals create near-zero waits; compressed arrivals produce congestion. |
+| Pair 6: Short-interval strategy resilience | Short-interval arrivals, same scale and demand distribution | Strategy under high pressure: `single_snake`, `size_base`, `vip` | `Testing/Testdate-longshort/restaurant_run_outputs_latest_long_short_fast/summary_metrics_by_dataset.csv` | Average wait, average queue length, max queue length | Single Snake has the lowest short-pressure wait and queue averages among the tested strategies. |
+
+| Pair | Same arrival pattern or controlled distribution? | One main changed factor? | Evidence status |
+|---|---|---|---|
+| Pair 1 | Yes, normal demand distribution is shared across the compared strategy datasets. | Yes, queue strategy. | Supported by Baseline files and charts. |
+| Pair 2 | Yes, normal demand distribution is shared across the compared strategy datasets. | Mostly, queue strategy plus VIP status availability in the VIP dataset. | Supported by Baseline files and charts. |
+| Pair 3 | Broadly controlled normal arrivals. | Yes, VIP proportion. | Supported by Baseline and MoreVIP files. |
+| Pair 4 | Broadly controlled normal arrivals. | Yes, party-size mix. | Supported by Baseline and MoreA files. |
+| Pair 5 | Yes, group distribution and restaurant scale are fixed. | Yes, arrival interval length. | Strongly supported by summary CSVs. |
+| Pair 6 | Yes, short-interval stress condition is fixed. | Yes, strategy. | Strongly supported by summary CSVs. |
 
 #### 6.2 Baseline Case: Normal Demand
 

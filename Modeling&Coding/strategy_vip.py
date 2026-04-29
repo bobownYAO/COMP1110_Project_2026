@@ -20,6 +20,7 @@ def algorithm(restaurant, customer):
     customer["final_wait_time"] = np.nan
     customer["start_service_time"] = np.nan
     customer["leave_time"] = np.nan
+    customer["assigned_table_type"] = None
 
     table = dict(zip(restaurant["table_size"], restaurant["table_number"]))
 
@@ -55,6 +56,7 @@ def algorithm(restaurant, customer):
                 customer.loc[customer_id, "final_wait_time"] = now_time - arrive_time
                 customer.loc[customer_id, "start_service_time"] = now_time
                 customer.loc[customer_id, "leave_time"] = now_time + dinning_time
+                customer.loc[customer_id, "assigned_table_type"] = table_index
                 queue_state.push_occupied(table_index, now_time + dinning_time, now_time, customer_size, customer_id)
 
             while table[table_index] > queue_state.occupied_size(table_index) and queue_state.waiting_size(table_index, False):
@@ -63,6 +65,7 @@ def algorithm(restaurant, customer):
                 customer.loc[customer_id, "final_wait_time"] = now_time - arrive_time
                 customer.loc[customer_id, "start_service_time"] = now_time
                 customer.loc[customer_id, "leave_time"] = now_time + dinning_time
+                customer.loc[customer_id, "assigned_table_type"] = table_index
                 queue_state.push_occupied(table_index, now_time + dinning_time, now_time, customer_size, customer_id)
 
         now_time += 1

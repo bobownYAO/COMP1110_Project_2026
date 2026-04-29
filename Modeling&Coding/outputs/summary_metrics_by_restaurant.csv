@@ -1,0 +1,2 @@
+restaurant,strategy,customers,served,unserved,avg_wait_time,max_wait_time,avg_occupation_rate_pct,avg_queue_length,max_queue_length,total_tables,total_seats
+R1,size_base,3,3,0,0.0,0.0,62.969924812030065,0.0,0,4,14

@@ -37,7 +37,13 @@ Testing-only dependency:
 
 - `pytest`
 
-There is currently no `requirements.txt` or other dependency-management file in the repository. Install the required libraries manually before running the project:
+Install the required libraries from the repository root:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+If needed, the same dependencies can also be installed manually:
 
 ```bash
 python -m pip install pandas numpy matplotlib
@@ -129,6 +135,12 @@ COMP1110_Project_2026\Modeling&Coding\testdata_customer.csv
 
 After the simulation finishes, the program prints a restaurant performance report and saves visualization charts such as occupation rate, table utilization, waiting-time density, and queue length over time.
 
+All generated charts and the numerical summary CSV are saved under `Modeling&Coding/outputs/` when the program is run from the main code folder. The summary file is:
+
+```text
+outputs/summary_metrics_by_restaurant.csv
+```
+
 To generate new synthetic CSV datasets, run the testing data generator:
 
 ```bash
@@ -201,6 +213,9 @@ During preprocessing, the program adds a calculated `dinning_time` column using 
 - `final_wait_time`
 - `start_service_time`
 - `leave_time`
+- `assigned_table_type`
+
+The `assigned_table_type` column records the actual table category used by a served group. This is especially important for the `single_snake` strategy because a small group may be seated at a larger available table.
 
 ### Validation Rules
 
@@ -237,7 +252,9 @@ Customer data must:
 - `single_snake` strategy with one global waiting queue.
 - `size_base` strategy with table-category queues based on customer group size.
 - `vip` strategy with VIP priority within each table category.
+- Actual assigned table type recorded for each served customer group.
 - Per-restaurant wait-time analysis, including maximum, minimum, and average waiting time.
+- Per-restaurant summary metrics exported to `outputs/summary_metrics_by_restaurant.csv`, including served/unserved counts and queue-length statistics.
 - Occupation-rate calculation and minute-by-minute restaurant utilization reporting.
 - Visualization scripts for occupation rate, table utilization, waiting-time density, and queue length over time.
 - Synthetic testing data generation through `Testing/data_generate.py`.
@@ -245,7 +262,7 @@ Customer data must:
 
 ## 8. Sample Test Cases
 
-The repository includes automated sample tests in `Testing/test_input_validation.py` and small CSV fixtures in `Testing/sample_cases/`.
+The repository includes automated sample tests in `Testing/test_input_validation.py`, strategy behavior tests in `Testing/test_strategy_behavior.py`, and small CSV fixtures in `Testing/sample_cases/`.
 
 Run them from the project root:
 
@@ -267,10 +284,13 @@ Sample cases covered:
 | Invalid VIP value | `valid_restaurant.csv`, `invalid_vip_customer.csv` | Raises `ValueError` because `vip` must be `0` or `1`. |
 | Unknown restaurant | `valid_restaurant.csv`, `unknown_restaurant_customer.csv` | Raises `ValueError` for a customer referencing a missing restaurant. |
 | Negative value | `valid_restaurant.csv`, `negative_value_customer.csv` | Raises `ValueError` for a negative numeric field. |
+| Missing file | Missing restaurant CSV path | Raises `FileNotFoundError` with a clear message. |
+| Empty or malformed CSV | Temporary invalid CSV files | Raises `ValueError` before simulation starts. |
+| Strategy behavior | Direct calls to `single_snake`, `size_base`, and `vip` modules | Confirms result columns, VIP priority, size-based FIFO behavior, and Single Snake table fallback. |
 
 ## 9. Case Studies
 
-The final report uses several synthetic case studies to compare the three implemented strategies under different demand conditions. Each main case uses the same basic scale: five restaurants, 200 customer groups per restaurant, and fixed dining time. The comparison focuses on waiting time, queue length, occupation rate, table utilization, and waiting-time distribution.
+The final report uses several synthetic case studies to compare the three implemented strategies under different demand conditions. Each main case uses the same basic scale: five restaurants, 200 customer groups per restaurant, and fixed dining time. The comparison focuses on waiting time, queue length, occupation rate, table utilization, and waiting-time distribution. The final report also reorganizes the existing datasets into paired scenarios required by Topic C, so the changed factor and fixed controls are explicit.
 
 Case groups studied:
 
@@ -291,6 +311,7 @@ The project provides a working simulation framework, but it is still a simplifie
 |---|---|
 | Code structure is still script-oriented. Some responsibilities, such as input handling, strategy dispatching, analysis, and plotting, are separated into files but could be organized more clearly. | Refactor the project into clearer modules such as data validation, simulation engine, strategies, analysis, and visualization. This would make the code easier to maintain and extend. |
 | Input format is still strict. The program expects fixed CSV columns, fixed strategy names, and fixed table categories `A`, `B`, and `C`. | Support more flexible configuration, command-line arguments, custom table labels, and clearer user guidance for fixing invalid input files. |
+| The current model still uses fixed `A`/`B`/`C` table categories and assumes no customer walkaway behavior. | Add configurable table categories and customer-abandonment rules for more realistic stress testing. |
 | The simulation is simplified and cannot fully reproduce real restaurant behavior. It does not model cancellations, customers leaving the queue, late arrivals, party-size changes, reservations, staff capacity, kitchen speed, or table sharing. | Add more realistic behaviors such as customer abandonment, reservation/no-show handling, dynamic table assignment, table sharing, staff constraints, and peak-hour arrival patterns. |
 | Dining time is estimated with a simple formula based mainly on group size. The random mode only adds a small random offset. | Use more realistic probability distributions for dining time, and run repeated simulations with different random seeds to compare average results. |
 | Strategy coverage is limited to `single_snake`, `size_base`, and `vip`. Other strategies discussed during research are not fully implemented. | Add hybrid strategies, such as VIP plus single snake, size-based fallback rules, or allowing small groups to use larger tables after a maximum waiting threshold. |
