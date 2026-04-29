@@ -223,7 +223,7 @@ The four case groups are not intended to prove that one strategy is always best.
 
 #### 6.2 Baseline Case: Normal Demand
 
-##### 1. Executive Summary
+##### 1. Executive Summary for This Part
 
 This report presents a technical evaluation of three queuing strategies— Single Snake ,  Size-based , and  VIP Priority —benchmarked against varying arrival densities. The analysis adopts a dual-lens framework:  High-Pressure Resilience  (evaluating performance during compressed arrival waves) and  Low-Pressure Efficiency  (evaluating flow during dispersed arrivals).
 
@@ -287,7 +287,7 @@ Based on the simulation data, the optimal operational logic is summarized in the
 
 #### 6.3 More VIP Case: Priority Pressure
 
-##### 1 Executive Summary
+##### 1 Executive Summary for This Part
 
 This evaluation synthesizes the core findings of a simulation comparing a "Baseline" scenario (20% VIP proportion) with a "More VIP" scenario (50% VIP proportion). The data confirms a state of  Global Efficiency Invariance : despite a 150% increase in the VIP segment, system-wide performance metrics—total throughput and aggregate wait times—remain strictly static. These results indicate that global efficiency is fundamentally dictated by physical system capacity rather than the nuances of customer segmentation or priority logic.
 
@@ -346,7 +346,7 @@ Strategic Outlook:
 
 #### 6.4 More Small Groups Case: Table-Category Bottleneck
 
-##### 1 Executive Summary
+##### 1 Executive Summary for This Part
 
 In scenarios where 1-2 person groups represent 90% of the customer mix, the choice of queuing strategy dictates the system's ability to handle arrival volatility. This analysis finds that while extreme pressure (short-interval arrivals) causes significant delays across all models, the  Single Snake  strategy demonstrates superior  High-Pressure Resilience . By utilizing "stochastic pooling"—allowing the dominant customer segment to access any available capacity—Single Snake suppresses the escalation of waiting times more effectively than rigid, size-based models.
 
@@ -407,7 +407,7 @@ Final Command:   Single Snake should be the default operating logic. It offers t
 
 #### 6.5 Long vs Short Arrival Intervals: Demand Intensity
 
-##### 1. Executive Summary
+##### 1. Executive Summary for This Part
  
 The revised interpretation is customer-flow oriented. The central question is not whether unused table capacity should be reallocated, but which queueing strategy keeps most customers from waiting too long under different arrival-density conditions. Short interval represents a high-pressure situation because many groups arrive in a compressed time window. Long interval represents a low-pressure situation because arrivals are spread out and the restaurant has more time to absorb demand. The medium or baseline condition is treated only as the reference point between these two stress extremes.
  
@@ -419,7 +419,7 @@ Under long-interval conditions, the result is different. All three strategies cr
  
 ##### 2. Analytical Framework
  
-The report separates two decision lenses. First, high-pressure resilience asks whether a strategy can slow the rapid build-up of waiting time when arrivals become highly concentrated. This is not judged only by table utilization, because high utilization can coexist with poor customer experience if the queue grows sharply. The stronger indicators are average wait time, average queue length, and whether the queue remains persistent across the run.
+The part of the report separates two decision lenses. First, high-pressure resilience asks whether a strategy can slow the rapid build-up of waiting time when arrivals become highly concentrated. This is not judged only by table utilization, because high utilization can coexist with poor customer experience if the queue grows sharply. The stronger indicators are average wait time, average queue length, and whether the queue remains persistent across the run.
  
 Second, low-pressure efficiency asks whether the strategy can keep customer flow nearly frictionless when arrivals are spread out. In that condition, the best strategy is not the one that maximizes table use, but the one that keeps waiting near zero while avoiding unnecessary operational complexity.
  
