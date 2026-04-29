@@ -261,4 +261,17 @@ Sample cases covered:
 
 ## 9. Case Studies
 
+The final report uses several synthetic case studies to compare the three implemented strategies under different demand conditions. Each main case uses the same basic scale: five restaurants, 200 customer groups per restaurant, and fixed dining time. The comparison focuses on waiting time, queue length, occupation rate, table utilization, and waiting-time distribution.
+
+Case groups studied:
+
+| Case group | What was tested | Brief conclusion |
+|---|---|---|
+| Baseline / normal demand | Compared `single_snake`, `size_base`, and `vip` under medium arrival pressure. | The baseline is mainly a reference point. It shows that Table C can become a bottleneck, and that Single Snake is slightly more stable when pressure increases. |
+| More VIP | Increased the VIP proportion from the baseline setting to test whether priority service improves global performance. | More VIP customers change who gets seated first, but do not improve overall throughput or average waiting time when table capacity is fixed. |
+| More small groups | Increased the share of 1-2 person groups to test table-category imbalance. | Rigid size-based matching can waste larger tables when most customers are small groups. Single Snake performs better because it can use available capacity more flexibly. |
+| Long vs short arrival intervals | Compared dispersed arrivals with compressed arrival waves. | Under long intervals, all strategies produce near-zero waiting. Under short intervals, all strategies suffer congestion, but Single Snake has the lowest average wait time and queue length among the tested strategies. |
+
+Overall, the case studies do not prove that one strategy is always best. The main conclusion is that `single_snake` is the safest default when arrival density is uncertain or likely to be concentrated, because it reduces queue build-up better than the other tested strategies. When arrivals are well spread out, strategy choice matters much less because all three approaches can keep waiting time close to zero.
+
 ## 10. Limitations and Future Improvements
