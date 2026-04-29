@@ -10,23 +10,132 @@ This project addresses that problem through simulation. Instead of designing a f
 
 ### 2. Research Background
 
-The research stage of the project was broad and intentionally divided across several queue-management ideas and real-world applications. Based on the materials in the `Research` folder, the project began from four strategic directions.
+The research stage of the project was broad and intentionally divided across several queue-management ideas and real-world applications. Each team member investigated a distinct strategic direction, examining both the theoretical foundations and practical implementations in modern restaurant systems. The materials in the `Research` folder reveal four complementary research streams that together establish the conceptual framework for the simulation project.
 
-#### 2.1 Single Snake Queue
+#### 2.1 Single Snake Queue Strategy
 
-The single snake strategy is based on the idea of a single shared waiting line feeding multiple service resources. The research emphasized two major strengths of this approach. First, it reduces the unfairness created when customers choose different lines with different speeds. Second, it improves consistency because all waiting demand is pooled together. The related case study connected this idea to digital queueing practices used in large restaurant brands such as Haidilao.
+**Theoretical Foundation and Mathematical Logic**
 
-#### 2.2 VIP Queue
+The single snake strategy is rooted in pooling theory and the mathematical efficiency of the M/M/s queueing model, first formalized by Erlang in 1909. Instead of maintaining separate lines for each service resource, all customer demand is pooled into one shared buffer—the "snake." This design eliminates server idling, where one service point remains free while customers wait in a different, slower-moving line. The primary operational goal is consistency: by removing the "bad luck factor" of choosing the wrong line, the single snake reduces variance in waiting time and creates a strict First-Come, First-Served (FCFS) experience that customers perceive as fundamentally fair.
 
-The VIP strategy was studied as a differentiated-service model. Its main purpose is not only operational efficiency but also business prioritization. In this approach, customers with higher value or membership status receive priority when tables become available. The research highlighted the trade-off between commercial value and perceived fairness, and connected this logic to systems such as THE GULU, where priority treatment can coexist with categorized table queues.
+**Psychological and Operational Advantages**
 
-#### 2.3 Size-Based / Multi-Queue Strategy
+From a psychological perspective, humans tolerate waiting more easily when the process follows transparent FCFS logic. Seeing someone who arrived later get served first creates significant service-related stress. The single snake eliminates this anxiety by making the queue order visible and unambiguous. Operationally, the strategy maximizes throughput by ensuring servers are constantly fed the next customer, and it eliminates line-switching behavior (jockeying) that disrupts flow in multi-line systems.
 
-The size-based strategy separates customers according to party size and then matches them to different table categories. This idea was motivated by the inefficiency of seating small groups at oversized tables or forcing large groups to wait unnecessarily when small tables remain idle. The research associated this strategy with digital queueing ecosystems such as Meituan and KeeTa, where segmentation and matching are central to operational efficiency.
+However, the strategy also presents challenges. A single long line can appear more intimidating than several short ones, potentially causing balking—customers refusing to join what looks like an overwhelming queue. Additionally, the physical space required to accommodate a serpentine path can create lobby congestion, and the pooled system makes it harder to hide slower or trainee staff members whose performance directly affects the entire queue.
 
-#### 2.4 Research Contribution to the Final System
+**Modern Digital Implementation: Haidilao Case Study**
 
-Taken together, the research stage shaped the final implementation in two ways. First, it established the main performance concerns of the project: fairness, waiting time, table utilization, and service priority. Second, it provided the conceptual basis for selecting the three strategies that were actually implemented in code: `single_snake`, `vip`, and `size_base`. In other words, the final code reflects a narrowed and more feasible subset of the original research scope.
+The research examined Haidilao's pioneering transition from physical lines to a virtual serpentine queue integrated into their WeChat Mini Program. This system manages over 100 million members globally and handles approximately 48% of all dine-in bookings. Key features include geofenced queueing (customers can only join if within a specific radius), real-time status tracking with live countdown displays, and a tiered priority system for high-value "Black Sea" members that creates parallel snakes with different weights feeding the same table pool.
+
+Haidilao's "lobby buffer" strategy addresses the challenge of digital queue management: while customers can wander away to shop or walk, the physical lobby serves as a final staging area where customers pre-order via QR codes, syncing their selections to the kitchen before seating. This increases table turnover rates to over 4.0x per day. The lobby also provides free snacks, manicures, and games to prevent reneging (customers leaving the queue). The system uses predictive analytics to forecast table clear times and automatically cancels no-shows, instantly advancing the next person in the snake.
+
+**Current Applications**
+
+Beyond Haidilao, the single snake has evolved into specialized formats across the restaurant industry: fast-casual assembly lines like Chipotle where the queue is the service path, high-volume quick-service restaurants using a single line feeding multiple self-service kiosks, and boutique bakeries where the winding line allows customers to view displays while waiting, reducing transaction time when they reach the counter.
+
+#### 2.2 VIP Priority Queue Strategy
+
+**Concept Evolution and Historical Context**
+
+The VIP priority queueing concept originated from the British term "Very Important Person," first emerging around 1933 and gaining administrative significance during World War II for identifying senior military personnel and diplomats requiring priority transportation. Post-war civilian aviation adopted this concept, offering lounges and priority services to distinguished guests. In the food and beverage sector, the strategy evolved from informal host-discretion models to modern algorithmic, data-driven frameworks where time became a proxy for value alongside food quality and service.
+
+**Strategic Scope and Best Use Cases**
+
+VIP queuing proves most effective in fine-dining establishments targeting "gourmet foodies" and influencers who contribute 20-50% of revenue and drive word-of-mouth promotion; high-demand urban venues where demand significantly exceeds capacity, causing balking or reneging; high-turnover casual dining such as Japanese all-you-can-eat or hotpot restaurants managing dense crowds while ensuring regulars receive consistent experiences; and medium-sized restaurants seeking to reduce on-site congestion and lower customer churn by up to 30%.
+
+**Trade-offs and Modeling Logic**
+
+The VIP strategy presents a fundamental trade-off between commercial value and perceived fairness. While it stabilizes wait times for high-value customer segments and reduces balking among profitable customers, it may increase wait times for regular customers and risks "starvation" when VIP arrival rates exceed system thresholds. Virtual queues can hide queue-jumping and reduce unfairness perception, but visible VIP priority creates negative utility proportional to the wait time differential experienced by regular customers.
+
+The research identified two priority system types: non-preemptive priority, where VIPs can pass regular customers but cannot interrupt a meal in progress, and preemptive priority, applicable to kitchen operations rather than physical seating. Many restaurants employ a 3:1 ratio heuristic—seating three regular parties for every one VIP party—to maintain system stability. This is supported by weighted resource allocation models where VIP queue weight might be set at 10 versus 1 for regular queues, providing disproportionate but not absolute capacity share.
+
+The total cost function for determining VIP thresholds is expressed as:
+```
+C = c₁λ₁E(W₁) + c₂λ₂E(W₂)
+```
+where c₁ and c₂ represent waiting costs for VIP and regular customers, λ₁ and λ₂ are arrival rates, and E(W₁) and E(W₂) are expected wait times. Key simulation parameters include a VIP-to-Regular arrival ratio of approximately 1:9, customer patience that decreases with queue position, and informational transparency through real-time updates that increases patience thresholds.
+
+**Real-World Implementation: THE GULU Platform**
+
+THE GULU, developed by Gorilla Group Limited and launched in Hong Kong in 2014, exemplifies comprehensive VIP queue management in practice. The platform serves over 2,000 restaurant partners including Maxim's Group (400+ restaurants) and targets both busy Hong Kong citizens optimizing their time and F&B merchants digitizing floor management. A defining milestone was its COVID-19 pandemic pivot, achieving peak 1.28 million simultaneous logins for mask queueing in early 2020.
+
+THE GULU implements multi-category table queuing (Categories A through D for party sizes 1-2, 3-4, 5-6, and 7+ persons respectively), with queues processed in parallel so small tables can serve Category A tickets even if Category B has older tickets. The platform's Fast-Lane VIP services integrate with merchant loyalty databases, managing priority users through a virtual fast-track that inserts VIPs at specific offsets from the front of the queue.
+
+The technical infrastructure relies on Tencent Cloud for container orchestration with horizontal pod autoscaling for traffic spikes, TencentDB for Redis handling over 1 million transactions per hour with millisecond latency, WebSocket for persistent bidirectional TCP connections enabling real-time push updates, and Golang goroutines for lightweight concurrent connections supporting thousands of simultaneous sessions.
+
+Operational impact data shows THE GULU reduces on-site congestion by 50%, decreases order remake rates from approximately 12% to under 3% through digital integration, increases table turnover by 15%, and provides real-time analytics replacing anecdotal intuition. Staff manage hybrid queues (walk-ins via kiosk plus remote app users) using handheld POS devices synced with a centralized queue manager.
+
+#### 2.3 Size-Based Multi-Queue Strategy
+
+**Evolution from FIFO Limitations**
+
+The multi-size queueing concept evolved from the limitations of traditional First-In, First-Out (FIFO) single-line systems in restaurant management. The older model often led to inefficient table utilization, where a party of two might occupy a table for four, or a large group would wait indefinitely while smaller tables sat empty. The modern strategy, pioneered by digital platforms like Meituan, represents a "divide and conquer" framework that segments customers into parallel virtual queues based on party size (e.g., Small, Medium, Large), matching them to corresponding table inventories. This shifts the core logic from a simple chronological sequence to a dynamic resource-optimization problem, maximizing table turnover and customer throughput.
+
+**Strategic Advantages and Challenges**
+
+Multi-size queuing proves most effective in high-turnover casual dining where maximizing seat utilization per hour is critical (e.g., ramen shops, fast-casual chains), family-style restaurants with diverse table size mixes (2-tops, 4-tops, 8-tops) catering to varied group demographics, high-demand urban venues where physical queue space is limited and reducing on-site congestion is a priority, and large-scale establishments such as Chinese dim sum restaurants or hotpot chains managing hundreds of waiting customers.
+
+The strategy significantly reduces average wait time by matching parties to appropriate tables efficiently and increases overall table turnover rate by 15-20% by minimizing idle time and size mismatches. It enhances "perceived fairness" as customers see queues for other party sizes moving independently. However, it can lead to "starvation" for less common party sizes (e.g., large-party queues) if their corresponding tables are few. "Downgrade matching"—seating a 2-person party at a 4-top—can reduce potential revenue during peak hours, and the system requires clear communication to manage expectations when a later-arriving small party is seated before an earlier large party.
+
+**Algorithmic Policies and Modeling Logic**
+
+The system operates on a minimum of three parallel, non-blocking queues, each tied to specific table inventory:
+- S-Queue (1-2 persons) → Small Tables
+- M-Queue (3-4 persons) → Medium Tables  
+- L-Queue (5+ persons) → Large Tables / Combinable Tables
+
+Key algorithmic policies include downgrade matching, where if S-Queue wait time exceeds a set threshold (e.g., 15 minutes) and an M-Table is idle, the system suggests seating the S-Queue party at the M-Table; predictive calling, where the system monitors seated tables' dining progress and pre-emptively calls the next party when a table enters the "payment" state to minimize idle time; and dynamic table combination for the L-Queue, where if no large table is free, the algorithm scans for adjacent free S or M tables and suggests physical combination to staff.
+
+The table utilization cost function conceptually represents the system's optimization goal:
+```
+Minimize C = w₁ × T_idle + w₂ × N_mismatch
+```
+where C is total operational cost/inefficiency, T_idle is the sum of idle minutes for all tables, N_mismatch is the number of parties seated at oversized tables, and w₁, w₂ are weighting factors for idle time versus mismatch inefficiency.
+
+**Platform Implementation: Meituan and KeeTa Dispatch Systems**
+
+Meituan, founded in 2010, dominates Chinese food delivery and local services through a sophisticated real-time logistics and dispatch system often called the "Super Brain." KeeTa, launched in Hong Kong in 2023, is Meituan's global-facing brand deploying this mature technology to new markets. The system targets a three-sided marketplace: users seeking convenience and speed, merchants aiming to expand reach, and riders looking to maximize income through efficient order fulfillment.
+
+Core features include dynamic load balancing that constantly analyzes real-time order volume against available rider capacity in geographical cells, intelligent order bundling that automatically groups orders with nearby restaurants and delivery destinations into single trips during medium-load periods, surge pricing and throttling that dynamically increases delivery fees and rider bonuses during high-load scenarios while potentially making some restaurants temporarily unavailable to prevent system collapse, and an ETA prediction engine using machine learning to provide accurate estimated arrival times by factoring restaurant prep time, real-time traffic, weather, and rider location.
+
+The technical infrastructure relies on cloud infrastructure (Tencent/AWS) for massive auto-scaling compute power handling city-wide concurrent dispatch calculations, real-time GIS and geofencing for precise location tracking and operational zone definition, in-memory databases (Redis) for millisecond-latency access to order statuses and queue data, and machine learning engines (TensorFlow) powering core dispatch algorithms, ETA predictions, and route optimization.
+
+Operational impact shows the system reduces average delivery time from 45-60 minutes to approximately 30 minutes, increases rider efficiency from 10-15 orders per day to 30-50+ orders per day, enables system throughput of millions of orders per hour compared to manual dispatcher limitations, and provides real-time dashboards on order density and rider performance replacing manual processes.
+
+#### 2.4 Table Sharing Strategy (Conceptual Research)
+
+**Historical and Cultural Context**
+
+Table sharing is defined as the practice of seating multiple separate parties—individual customers or groups—who are previously unacquainted at the same restaurant table. Historically, this custom has roots in diverse cultural rituals: from Greek symposia and medieval feasts to the communal tables of European bakeries. In East Asia, especially in Japan and Hong Kong, table sharing evolved as a routine necessity of high-density urban life. In modern hospitality, the concept has transitioned from a rustic necessity into a high-performance operational strategy used to mitigate high urban rents and meet the demands of younger consumers who seek social connectivity and shared experiences. Today, communal tables are viewed as "public space infrastructure" that facilitates social interaction while maximizing seat utilization.
+
+**Best Use Cases and Trade-offs**
+
+Table sharing proves most effective in cafes and bakeries where it creates an inviting atmosphere and encourages social interactions, fast-casual chains like Wagamama and Le Pain Quotidien utilizing long communal benches to prioritize high-volume flow and speed, dim sum halls and urban food halls in high-density environments relying on table sharing to handle massive peak-hour crowds, and waiting areas with pub tables managing guests before they move to private dining.
+
+The strategy offers significant advantages: seating guests at shared tables is faster than waiting for private tables to clear, unseated seats created when small groups occupy large tables can be utilized, it provides a "social spark" and sense of belonging to a larger community, and it boosts revenue by allowing more customers per shift without increasing footprint. However, disadvantages include potential frustration and anxiety if staff do not communicate clearly about sharing expectations, inefficient seating layouts can still occur leaving single empty seats hard to fill, cultural resistance is high in Western markets where personal space and independence are prioritized, and the noise and crowding of shared environments may result in customer loss.
+
+**Modeling Logic and Implementation Framework**
+
+To simulate or implement table sharing effectively, the modeling logic requires defining entities for customer groups (size, arrival time, dining duration) and tables (capacity and current occupancy status), queue segmentation assigning arriving groups to matching queues based on party size ranges (1-2, 3-4, 5+ people), allocation logic that identifies and seats the earliest-waiting group from the matching queue whenever a seat or table becomes available, event-based or step-by-step advancement to process arrivals and update dining status as groups finish, and performance tracking computing metrics such as average/max wait time, max queue length, table utilization percentage, and service level (percentage of groups seated within target time).
+
+**Real-World Platform: Meiwei Bu Yong Deng**
+
+"Meiwei Bu Yong Deng" (MWBYD) is a prominent smart dining service provider in China specializing in B2B SaaS products and C-end consumer applications. Founded in January 2013 by Xie Xinfa, a former ZTE engineer, the company was born from the insight that queuing is the most effective scenario to connect restaurants with consumers. Within five years, it covered over 200 cities and partnered with more than 100,000 restaurants, serving nearly 80 million diners monthly.
+
+Core features include multi-channel queuing supporting remote ticket collection via app, WeChat official accounts, and third-party platforms allowing guests to join lines from home or office; real-time status tracking where diners scan QR codes on tickets to see exact queue position and estimated wait times; pre-ordering food allowing customers to select dishes while waiting with synchronization to the kitchen to increase table turnover and reduce walk-out rates; and queue incentives where restaurants add "waiting discounts" or coupons to the queuing interface to retain customers.
+
+The underlying technology stack includes SaaS (Software as a Service) cloud-based architecture for rapid deployment and iterative updates across thousands of locations without high hardware costs, big data analytics for precise customer profiling and scientific site selection for new restaurant branches, Internet of Things (IoT) integrating smart terminals (POS, printers, audio systems) ensuring seamless data flow between front desk and kitchen, and cloud computing facilitating real-time synchronization of queuing data across different mobile and web interfaces.
+
+Operational impact shows MWBYD transforms the wait time experience from customers staying near the door (perceived as stressful) to remote queuing greatly reducing anxiety, improves labor efficiency by automating procedures that staff previously managed manually, and increases customer retention by providing transparent queue status and pre-order functions compared to high walk-out rates in traditional manual systems.
+
+#### 2.5 Research Contribution to the Final System
+
+Taken together, the four research streams shaped the final implementation in several critical ways. First, they established the main performance concerns of the project: fairness (ensuring customers perceive the queue as just), waiting time (minimizing customer burden), table utilization (maximizing resource efficiency), and service priority (balancing commercial value with operational flow). Second, they provided the conceptual basis for selecting the three strategies that were actually implemented in code: `single_snake`, `vip`, and `size_base`.
+
+The single snake research contributed the pooling logic and FCFS fairness principle that became the foundation of the `single_snake` implementation. The VIP research provided the priority queue structure and the non-preemptive priority model that informed the `vip` strategy's design. The size-based research established the parallel queue architecture and downgrade matching logic that shaped the `size_base` implementation. The table sharing research, while not developed into a full simulation module, influenced the conceptual understanding of table capacity flexibility and the trade-offs between strict matching rules and adaptive seating policies.
+
+In other words, the final code reflects a narrowed and more feasible subset of the original research scope. The research stage was intentionally broad, exploring both implemented strategies (single snake, VIP, size-based) and conceptual directions (table sharing) to establish a comprehensive understanding of the restaurant queue management problem space. The modeling and coding stages then focused on the three strategies most amenable to discrete-event simulation with the available data structures and time constraints, while the research foundation ensured these implementations were grounded in real-world applications and theoretical principles from queueing theory.
 
 ### 3. Modeling Approach
 
