@@ -50,3 +50,39 @@ def test_invalid_csv_input_raises_clear_value_error(restaurant_file, customer_fi
             sample_path(customer_file),
             random_state=0,
         )
+
+
+def test_missing_csv_file_raises_clear_file_not_found():
+    with pytest.raises(FileNotFoundError, match="File not found"):
+        io_file.read_file(
+            sample_path("does_not_exist.csv"),
+            sample_path("valid_customer.csv"),
+            random_state=0,
+        )
+
+
+def test_empty_csv_file_raises_clear_value_error(tmp_path):
+    empty_file = tmp_path / "empty.csv"
+    empty_file.write_text("", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="empty or invalid"):
+        io_file.read_file(
+            empty_file,
+            sample_path("valid_customer.csv"),
+            random_state=0,
+        )
+
+
+def test_malformed_csv_file_raises_clear_value_error(tmp_path):
+    malformed_file = tmp_path / "malformed.csv"
+    malformed_file.write_text(
+        'name,strategy,open_time,table_size,table_number\nR1,"vip,0,A,1\n',
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="empty or invalid"):
+        io_file.read_file(
+            malformed_file,
+            sample_path("valid_customer.csv"),
+            random_state=0,
+        )

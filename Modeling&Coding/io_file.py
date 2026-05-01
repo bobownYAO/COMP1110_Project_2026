@@ -112,8 +112,8 @@ def read_file(filepath_restaurant,filepath_customer,random_state):
         customer = pd.read_csv(filepath_customer)
     except FileNotFoundError as exc:
         raise FileNotFoundError(f"File not found: {exc.filename}") from exc
-    except pd.errors.ParserError as exc:
-        raise ValueError("Input CSV format is invalid.") from exc
+    except (pd.errors.ParserError, pd.errors.EmptyDataError) as exc:
+        raise ValueError("Input CSV format is empty or invalid.") from exc
 
     validate_input_data(restaurant, customer)
     return data_process(restaurant,customer, random_state)
@@ -152,7 +152,9 @@ def read_console(random_state):
 def data_process(restaurant ,customer, random_state):
 
     random_offsets = np.random.randint(-10, 11, size=len(customer))
-    customer["dinning_time"]=customer["number"]*10+20+random_state*random_offsets
+    customer["dining_time"] = customer["number"] * 10 + 20 + random_state * random_offsets
+    # Backward-compatible alias used by the existing strategy modules.
+    customer["dinning_time"] = customer["dining_time"]
     
     earliest_arrival = customer.groupby("restaurant")["arrival_time"].min()
     restaurant["open_time"] = restaurant["name"].map(earliest_arrival)
@@ -162,10 +164,10 @@ def data_process(restaurant ,customer, random_state):
 #pack and send
 def package(restaurant, customer):
     restaurant_list = restaurant[["name", "strategy"]].drop_duplicates()
-    result_columns = ["final_wait_time", "start_service_time", "leave_time"]
+    result_columns = ["final_wait_time", "start_service_time", "leave_time", "assigned_table_type"]
     for col in result_columns:
         if col not in customer.columns:
-            customer[col] = np.nan
+            customer[col] = None if col == "assigned_table_type" else np.nan
     
     for row in restaurant_list.itertuples(index=False):
         restaurant_name = row.name
@@ -187,5 +189,5 @@ def package(restaurant, customer):
             #     pass
 
     print("Final customer wait-time preview:")
-    print(customer[["restaurant", "index", "arrival_time", "final_wait_time", "start_service_time", "leave_time"]].head())
+    print(customer[["restaurant", "index", "arrival_time", "final_wait_time", "start_service_time", "leave_time", "assigned_table_type"]].head())
     return customer

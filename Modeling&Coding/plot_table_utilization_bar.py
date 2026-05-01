@@ -36,7 +36,14 @@ def _average_utilization_by_table_type(
     if served.empty:
         return {}
 
-    served["table_type_used"] = served["number"].astype(int).map(_assigned_table_type)
+    if "assigned_table_type" in served.columns and served["assigned_table_type"].notna().any():
+        served["table_type_used"] = served["assigned_table_type"]
+        missing_table_type = served["table_type_used"].isna()
+        served.loc[missing_table_type, "table_type_used"] = (
+            served.loc[missing_table_type, "number"].astype(int).map(_assigned_table_type)
+        )
+    else:
+        served["table_type_used"] = served["number"].astype(int).map(_assigned_table_type)
     table_counts = {
         row["table_size"]: int(row["table_number"])
         for _, row in restaurant_sub.iterrows()
