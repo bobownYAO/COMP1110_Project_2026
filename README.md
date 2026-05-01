@@ -133,6 +133,14 @@ COMP1110_Project_2026\Modeling&Coding\testdata_restaurant.csv
 COMP1110_Project_2026\Modeling&Coding\testdata_customer.csv
 ```
 
+For reproducible non-interactive runs, execute the same program from the project root with explicit CSV paths:
+
+```bash
+python "Modeling&Coding\main.py" --dining fixed --restaurant-csv "Testing\sample_cases\valid_restaurant.csv" --customer-csv "Testing\sample_cases\valid_customer.csv" --output-dir "Testing\final_case_outputs\sample"
+```
+
+The `--dining` option accepts `fixed` or `random`. Fixed mode is recommended when comparing strategies because it removes random variation from dining time.
+
 After the simulation finishes, the program prints a restaurant performance report and saves visualization charts such as occupation rate, table utilization, waiting-time density, and queue length over time.
 
 All generated charts and the numerical summary CSV are saved under `Modeling&Coding/outputs/` when the program is run from the main code folder. The summary file is:
@@ -140,6 +148,14 @@ All generated charts and the numerical summary CSV are saved under `Modeling&Cod
 ```text
 outputs/summary_metrics_by_restaurant.csv
 ```
+
+To rerun the main final-report case-study datasets in batch mode, use:
+
+```bash
+python "Testing\run_final_case_studies.py"
+```
+
+This writes one output folder per case under `Testing/final_case_outputs/`.
 
 To generate new synthetic CSV datasets, run the testing data generator:
 
@@ -208,7 +224,7 @@ index,restaurant,vip,number,arrival_time
 3,R1,1,4,10
 ```
 
-During preprocessing, the program adds a calculated `dinning_time` column using the customer group size and the selected fixed/random dining-time mode. During simulation, it also adds result columns:
+During preprocessing, the program adds a calculated `dining_time` column using the customer group size and the selected fixed/random dining-time mode. For compatibility with the original strategy modules, the same value is also kept in the legacy column `dinning_time`. During simulation, it also adds result columns:
 
 - `final_wait_time`
 - `start_service_time`
@@ -260,9 +276,15 @@ Customer data must:
 - Synthetic testing data generation through `Testing/data_generate.py`.
 - Pre-generated testing scenarios for baseline comparison, higher VIP ratio, more small groups, and different arrival intervals.
 
+Metric naming:
+
+- `occupation_rate` means the number of people currently dining divided by total restaurant seats.
+- `table_utilization` means table or table-category usage as visualized by the utilization plotting modules.
+- `avg_wait_time`, `max_wait_time`, `avg_queue_length`, `max_queue_length`, `avg_occupation_rate_pct`, `total_tables`, and `total_seats` are stable summary CSV fields.
+
 ## 8. Sample Test Cases
 
-The repository includes automated sample tests in `Testing/test_input_validation.py`, strategy behavior tests in `Testing/test_strategy_behavior.py`, and small CSV fixtures in `Testing/sample_cases/`.
+The repository includes automated sample tests in `Testing/test_input_validation.py`, strategy behavior tests in `Testing/test_strategy_behavior.py`, end-to-end metric regression tests in `Testing/test_end_to_end_metrics.py`, and small CSV fixtures in `Testing/sample_cases/`.
 
 Run them from the project root:
 
@@ -274,7 +296,7 @@ Sample cases covered:
 
 | Case | Files | Expected result |
 |---|---|---|
-| Valid input | `valid_restaurant.csv`, `valid_customer.csv` | Loads successfully and adds `dinning_time`. |
+| Valid input | `valid_restaurant.csv`, `valid_customer.csv` | Loads successfully and adds `dining_time` plus the legacy `dinning_time` alias. |
 | Missing restaurant column | `missing_column_restaurant.csv`, `valid_customer.csv` | Raises `ValueError` for missing required column. |
 | Missing customer column | `valid_restaurant.csv`, `missing_column_customer.csv` | Raises `ValueError` for missing required column. |
 | Invalid strategy | `invalid_strategy_restaurant.csv`, `valid_customer.csv` | Raises `ValueError` for invalid strategy value. |
@@ -287,19 +309,21 @@ Sample cases covered:
 | Missing file | Missing restaurant CSV path | Raises `FileNotFoundError` with a clear message. |
 | Empty or malformed CSV | Temporary invalid CSV files | Raises `ValueError` before simulation starts. |
 | Strategy behavior | Direct calls to `single_snake`, `size_base`, and `vip` modules | Confirms result columns, VIP priority, size-based FIFO behavior, and Single Snake table fallback. |
+| End-to-end metrics | Direct calls to the shared simulation runner | Confirms exact wait times, service times, table assignments, max queue length, summary columns, and generated output files for all three strategies. |
 
 ## 9. Case Studies
 
-The final report uses several synthetic case studies to compare the three implemented strategies under different demand conditions. Each main case uses the same basic scale: five restaurants, 200 customer groups per restaurant, and fixed dining time. The comparison focuses on waiting time, queue length, occupation rate, table utilization, and waiting-time distribution. The final report also reorganizes the existing datasets into paired scenarios required by Topic C, so the changed factor and fixed controls are explicit.
+The final report uses the normal-demand baseline as the reference case, then compares that baseline with several controlled scenario variants. Each main case uses the same basic scale: five restaurants, 200 customer groups per restaurant, and fixed dining time. The comparison focuses on waiting time, queue length, occupation rate, table utilization, and waiting-time distribution. This baseline-centered design makes the changed factor and fixed controls explicit for Topic C.
 
 Case groups studied:
 
-| Case group | What was tested | Brief conclusion |
+| Case group | Relationship to baseline | Brief conclusion |
 |---|---|---|
-| Baseline / normal demand | Compared `single_snake`, `size_base`, and `vip` under medium arrival pressure. | The baseline is mainly a reference point. It shows that Table C can become a bottleneck, and that Single Snake is slightly more stable when pressure increases. |
-| More VIP | Increased the VIP proportion from the baseline setting to test whether priority service improves global performance. | More VIP customers change who gets seated first, but do not improve overall throughput or average waiting time when table capacity is fixed. |
-| More small groups | Increased the share of 1-2 person groups to test table-category imbalance. | Rigid size-based matching can waste larger tables when most customers are small groups. Single Snake performs better because it can use available capacity more flexibly. |
-| Long vs short arrival intervals | Compared dispersed arrivals with compressed arrival waves. | Under long intervals, all strategies produce near-zero waiting. Under short intervals, all strategies suffer congestion, but Single Snake has the lowest average wait time and queue length among the tested strategies. |
+| Baseline / normal demand | Reference scenario for comparing `single_snake`, `size_base`, and `vip` under medium arrival pressure. | The baseline shows normal strategy behavior and reveals that Table C can become a bottleneck. |
+| More VIP | Variant of the baseline VIP case with a higher VIP proportion. | More VIP customers change who gets seated first, but do not improve overall throughput or average waiting time when table capacity is fixed. |
+| More small groups | Variant of the baseline group mix with many more 1-2 person groups. | Rigid size-based matching can waste larger tables when most customers are small groups. Single Snake performs better because it can use available capacity more flexibly. |
+| Long arrival intervals | Low-pressure variant of the baseline arrival pattern. | When arrivals are dispersed, all strategies produce near-zero waiting. |
+| Short arrival intervals | High-pressure variant of the baseline arrival pattern. | When arrivals are compressed, all strategies suffer congestion, but Single Snake has the lowest average wait time and queue length among the tested strategies. |
 
 Overall, the case studies do not prove that one strategy is always best. The main conclusion is that `single_snake` is the safest default when arrival density is uncertain or likely to be concentrated, because it reduces queue build-up better than the other tested strategies. When arrivals are well spread out, strategy choice matters much less because all three approaches can keep waiting time close to zero.
 
@@ -316,4 +340,4 @@ The project provides a working simulation framework, but it is still a simplifie
 | Dining time is estimated with a simple formula based mainly on group size. The random mode only adds a small random offset. | Use more realistic probability distributions for dining time, and run repeated simulations with different random seeds to compare average results. |
 | Strategy coverage is limited to `single_snake`, `size_base`, and `vip`. Other strategies discussed during research are not fully implemented. | Add hybrid strategies, such as VIP plus single snake, size-based fallback rules, or allowing small groups to use larger tables after a maximum waiting threshold. |
 | Evaluation outputs are not fully standardized across all case studies. Some cases have detailed processed summaries, while others rely more on generated figures. | Export consistent summary metrics for every case, including average wait time, queue length, table utilization, occupation rate, and output CSV files. |
-| The user workflow is mostly console-based. Users need to type file paths manually and inspect output files separately. | Add command-line options, batch-running support, a default output directory, or a simple GUI/web dashboard for easier use and result comparison. |
+| The user workflow now supports both console-based and command-line CSV execution, but output comparison still requires inspecting generated files. | Add a single combined comparison report or simple dashboard for easier result comparison. |

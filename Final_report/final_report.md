@@ -2,6 +2,29 @@
 
 ## Restaurant Queue Simulation Project
 
+### Table of Contents
+
+- [1. Introduction](#1-introduction)
+- [2. Research Background](#2-research-background)
+- [3. Modeling Approach](#3-modeling-approach)
+- [4. Division of Work](#4-division-of-work)
+- [5. Code Logic and Implementation](#5-code-logic-and-implementation)
+- [6. Case Study and Limitation Analysis](#6-case-study-and-limitation-analysis)
+  - [6.1 Case Study Design](#61-case-study-design)
+  - [6.2 Baseline Case: Normal Demand](#62-baseline-case-normal-demand)
+  - [6.3 Baseline vs More VIP Scenario: Priority Pressure](#63-baseline-vs-more-vip-scenario-priority-pressure)
+  - [6.4 Baseline vs More Small Groups Scenario: Table-Category Bottleneck](#64-baseline-vs-more-small-groups-scenario-table-category-bottleneck)
+  - [6.5 Baseline vs Short/Long Arrival Interval Scenarios: Demand Intensity](#65-baseline-vs-shortlong-arrival-interval-scenarios-demand-intensity)
+  - [6.6 Additional Proposed Case Pairs](#66-additional-proposed-case-pairs)
+  - [6.7 Limitation Analysis](#67-limitation-analysis)
+- [7. Topic C Requirements Checklist](#7-topic-c-requirements-checklist)
+- [References](#references)
+
+### Submission Links
+
+- GitHub Repository: https://github.com/bobownYAO/COMP1110_Project_2026
+- Demo Video: To be added
+
 ### 1. Introduction
 
 Restaurant queue management is a common problem in busy dining environments. A restaurant must decide how to seat customers with different party sizes, arrival times, and service priorities while making efficient use of limited table resources. If the queue is managed poorly, customers may wait too long, tables may remain underused, and the restaurant may lose both revenue and customer satisfaction.
@@ -235,10 +258,12 @@ The executable workflow of the project contains three connected stages: data pre
 
 Before the main simulation begins, the project also provides a separate data-generation utility in `Testing/data_generate.py`. This script is used to generate synthetic restaurant and customer CSV files under configurable strategy, restaurant-count, customer-count, VIP-ratio, group-size, and arrival-interval settings. In this sense, the overall pipeline does not begin only from manual or file input; it may also begin from automatically generated testing data prepared in advance for later simulation.
 
-The main simulation entry point is `main.py`. The program first asks the user whether dining time should be random or fixed, and then asks how data should be loaded. The supported input modes are:
+The main simulation entry point is `main.py`. The program can still be used interactively: it first asks the user whether dining time should be random or fixed, and then asks how data should be loaded. The supported input modes are:
 
 - manual input from the console
 - CSV input with explicit restaurant and customer file paths
+
+For reproducibility, the same entry point also supports command-line CSV execution with explicit restaurant file, customer file, dining-time mode, and output directory arguments. This makes it possible for a TA to rerun a case study without manually typing file paths into the console.
 
 After loading data, the program sends the restaurant and customer datasets into the packaging and simulation pipeline. It then performs performance analysis and, at the final stage, generates several visualization outputs.
 
@@ -252,6 +277,8 @@ The file `io_file.py` is responsible for:
 - preprocessing dining time
 - resetting restaurant open time to the earliest customer arrival
 - dispatching each restaurant to the correct queue strategy
+
+During preprocessing, the project now records the correctly spelled `dining_time` column and also keeps the original `dinning_time` column as a backward-compatible alias for the existing strategy modules. Both columns represent the same modeled dining duration.
 
 The `package()` function is the main controller for strategy execution. It groups data by restaurant, reads the strategy name, calls the corresponding algorithm module, and writes the results back into the customer table. The main output columns are:
 
@@ -293,6 +320,8 @@ The file `output_file.py` provides the main numerical analysis layer. For each r
 - average and maximum queue length
 - average occupation rate
 - minute-by-minute occupation detail
+
+In this report, `occupation_rate` means currently dining people divided by total seats. `table_utilization` refers to table or table-category usage as reported by the utilization plotting modules. Keeping these terms separate avoids confusing seat occupancy with table-category usage.
 
 The same analysis also produces `outputs/summary_metrics_by_restaurant.csv`, which gives a reproducible numerical summary for each restaurant run.
 
@@ -345,27 +374,27 @@ The evaluation focuses on the same indicators used by the output and visualizati
 - queue length over time
 - waiting-time distribution
 
-The four case groups are not intended to prove that one strategy is always best. Instead, they show how the same strategy may perform differently when demand pressure, VIP ratio, or party-size distribution changes.
+The four case groups are not intended to prove that one strategy is always best. Instead, they use the normal-demand baseline as the reference condition, then vary one main scenario pressure at a time: VIP ratio, group-size mix, or arrival intensity. This baseline-centered structure is the way the project satisfies the Topic C requirement for controlled scenario comparisons.
 
-To align the evidence more directly with the Topic C guideline, the existing datasets are organized into six paired comparisons. Each pair fixes the main simulation scale and changes one main decision factor or stress factor.
+The table below summarizes the evaluation design. "Baseline" means the normal-demand setting with five restaurants, 200 customer groups per restaurant, fixed dining time, and the default group-size distribution. The other scenario groups are interpreted as variants of that baseline.
 
-| Pair | Fixed controls | Changed factor | Input evidence | Main metrics | Conclusion |
+| Scenario comparison | Baseline/reference condition | Scenario change | Input evidence | Main metrics | Purpose |
 |---|---|---|---|---|---|
-| Pair 1: Normal Single Snake vs Size-Based | Normal arrival distribution, same 5 restaurants, 200 customer groups per restaurant, fixed dining time | Queue strategy: `single_snake` vs `size_base` | `Testing/Baseline/testdata_*_single_5r_200c_normal.csv`, `Testing/Baseline/testdata_*_size_base_5r_200c_normal.csv` | Wait time, occupation rate, table utilization, queue length | Single Snake is simpler and more flexible; Size-Based can use matching categories well but is less flexible when a category bottleneck appears. |
-| Pair 2: Normal Single Snake vs VIP | Normal arrival distribution, same scale, fixed dining time | Queue strategy: `single_snake` vs `vip` | `Testing/Baseline/testdata_*_single_5r_200c_normal.csv`, `Testing/Baseline/testdata_*_vip_5r_200c_normal.csv` | Wait time, queue length, VIP service order, utilization | VIP changes service order but does not automatically improve total throughput when capacity is fixed. |
-| Pair 3: Baseline VIP vs MoreVIP | VIP strategy, same restaurant scale, same broad arrival pattern | VIP proportion | `Testing/Baseline/testdata_customer_vip_5r_200c_normal.csv`, `Testing/MoreVIP/testdata_customer_vip_5r_200c_normal.csv` | Average wait, queue length, utilization | Increasing VIP share mostly reshuffles priority and does not remove physical table bottlenecks. |
-| Pair 4: Baseline group mix vs MoreA | Same scale, normal arrivals, same strategy set | Customer group-size distribution, especially more 1-2 person groups | `Testing/Baseline/`, `Testing/Testdata-MoreA/` | Table-type utilization, wait time, queue length | Rigid table-category matching can waste larger tables when small groups dominate. |
-| Pair 5: Long vs Short arrivals | Same restaurant scale, same group-size distribution, same strategy labels | Arrival interval length | `Testing/Testdate-longshort/testdata_*_long.csv`, `Testing/Testdate-longshort/testdata_*_short.csv` | Average wait, max wait, queue length, utilization | Dispersed arrivals create near-zero waits; compressed arrivals produce congestion. |
-| Pair 6: Short-interval strategy resilience | Short-interval arrivals, same scale and demand distribution | Strategy under high pressure: `single_snake`, `size_base`, `vip` | `Testing/Testdate-longshort/restaurant_run_outputs_latest_long_short_fast/summary_metrics_by_dataset.csv` | Average wait, average queue length, max queue length | Single Snake has the lowest short-pressure wait and queue averages among the tested strategies. |
+| Baseline strategy comparison | Normal-demand baseline for `single_snake`, `size_base`, and `vip` | Queue strategy differs while scale and normal arrival pressure stay fixed | `Testing/Baseline/` | Wait time, occupation rate, table utilization, queue length | Establish the reference behavior of the three implemented strategies. |
+| Baseline vs MoreVIP | Baseline VIP case with about 20% VIP customers | VIP proportion increases to about 50%, with the same strategy family and capacity scale | `Testing/Baseline/testdata_customer_vip_5r_200c_normal.csv`, `Testing/MoreVIP/testdata_customer_vip_5r_200c_normal.csv` | Average wait, queue length, utilization | Test whether adding more priority customers improves global performance or only changes service order. |
+| Baseline vs MoreA | Baseline group-size mix under normal arrival pressure | Small groups become dominant, creating a category-imbalance stress case | `Testing/Baseline/`, `Testing/Testdata-MoreA/` | Table-type utilization, wait time, queue length | Test whether rigid table-category matching wastes capacity when one group type dominates demand. |
+| Baseline vs Short arrivals | Baseline/medium arrival intensity | Arrival intervals become compressed, creating high-pressure demand | `Testing/Testdate-longshort/testdata_*_short.csv`, summary metrics CSV | Average wait, average queue length, max queue length | Measure high-pressure resilience against queue build-up. |
+| Baseline vs Long arrivals | Baseline/medium arrival intensity | Arrival intervals become more dispersed, creating low-pressure demand | `Testing/Testdate-longshort/testdata_*_long.csv`, summary metrics CSV | Average wait, queue length, occupation rate | Confirm whether strategy choice still matters when demand is easy to absorb. |
+| Short-arrival strategy comparison | Same short-arrival stress condition | Strategy differs under the same high-pressure setting | `Testing/Testdate-longshort/restaurant_run_outputs_latest_long_short_fast/summary_metrics_by_dataset.csv` | Average wait, average queue length, max queue length | Identify which strategy is most resilient after the baseline-to-short stress shift. |
 
-| Pair | Same arrival pattern or controlled distribution? | One main changed factor? | Evidence status |
+| Scenario comparison | Same scale? | One main changed factor? | How it supports Topic C |
 |---|---|---|---|
-| Pair 1 | Yes, normal demand distribution is shared across the compared strategy datasets. | Yes, queue strategy. | Supported by Baseline files and charts. |
-| Pair 2 | Yes, normal demand distribution is shared across the compared strategy datasets. | Mostly, queue strategy plus VIP status availability in the VIP dataset. | Supported by Baseline files and charts. |
-| Pair 3 | Broadly controlled normal arrivals. | Yes, VIP proportion. | Supported by Baseline and MoreVIP files. |
-| Pair 4 | Broadly controlled normal arrivals. | Yes, party-size mix. | Supported by Baseline and MoreA files. |
-| Pair 5 | Yes, group distribution and restaurant scale are fixed. | Yes, arrival interval length. | Strongly supported by summary CSVs. |
-| Pair 6 | Yes, short-interval stress condition is fixed. | Yes, strategy. | Strongly supported by summary CSVs. |
+| Baseline strategy comparison | Yes | Queue strategy | Provides the reference strategy comparison before scenario stress is added. |
+| Baseline vs MoreVIP | Yes | VIP ratio | Shows the effect of changing customer priority composition. |
+| Baseline vs MoreA | Yes | Group-size distribution | Shows the effect of changing demand mix while retaining the same simulation scale. |
+| Baseline vs Short arrivals | Yes | Arrival intensity | Shows high-pressure behavior relative to the medium baseline. |
+| Baseline vs Long arrivals | Yes | Arrival intensity | Shows low-pressure behavior relative to the medium baseline. |
+| Short-arrival strategy comparison | Yes | Queue strategy under a fixed stress case | Complements the baseline comparison by showing strategy robustness under compressed demand. |
 
 #### 6.2 Baseline Case: Normal Demand
 
@@ -431,7 +460,9 @@ Based on the simulation data, the optimal operational logic is summarized in the
 | Low-Pressure | Any Strategy | All strategies deliver near-zero waiting (~0.42m). Operational simplicity is the priority. |
 | Overall Logic | Single Snake | The  Safest Default . It offers a ~9% performance advantage during peaks without a low-pressure disadvantage. |
 
-#### 6.3 More VIP Case: Priority Pressure
+#### 6.3 Baseline vs More VIP Scenario: Priority Pressure
+
+This section is a paired comparison between the baseline VIP scenario and a More VIP scenario. The baseline condition uses the normal-demand VIP dataset, while the new scenario increases the VIP proportion and keeps the same general restaurant scale, table categories, customer volume, and fixed dining-time setting. The purpose of this pair is to isolate whether increasing the number of priority customers improves overall queue performance, or whether it only changes which customers receive earlier service under the same physical capacity.
 
 ##### 1 Executive Summary for This Part
 
@@ -490,7 +521,9 @@ Strategic Outlook:
 * The Operational Mandate:  For high-pressure arrival windows, the  "Single Snake"  strategy is the strongest resilience option. The data shows that Single Snake reduces average wait times by approximately  9%  (136.94 min) compared to VIP-based strategies (150.36 min) under extreme pressure.
 * Policy Direction:  Do not invest operational resources into segmenting queues during peak hours; instead, implement a Single Snake baseline to maximize the service rate and suppress queue escalation.
 
-#### 6.4 More Small Groups Case: Table-Category Bottleneck
+#### 6.4 Baseline vs More Small Groups Scenario: Table-Category Bottleneck
+
+This section is a paired comparison between the baseline group-size mix and a More Small Groups scenario. The baseline condition uses the normal customer-size distribution, while the new scenario increases the proportion of 1-2 person groups and keeps the same restaurant scale, strategy set, table-category structure, and fixed dining-time setting. The purpose of this pair is to test whether strict table-category matching becomes inefficient when demand is concentrated in one customer-size segment.
 
 ##### 1 Executive Summary for This Part
 
@@ -551,7 +584,9 @@ The "Senior Analyst" recommendation prioritizes the suppression of system failur
 
 Final Command:   Single Snake should be the default operating logic. It offers the strongest protection against waiting-time escalation (+220.9% growth vs. +230.9% for Size-based) and maintains operational fluidity across all arrival densities without the resource waste seen in size-restricted queuing.
 
-#### 6.5 Long vs Short Arrival Intervals: Demand Intensity
+#### 6.5 Baseline vs Short/Long Arrival Interval Scenarios: Demand Intensity
+
+This section treats arrival intensity as the controlled variable. The baseline condition represents the medium or normal arrival pattern, while the new scenarios compare compressed short-interval arrivals and dispersed long-interval arrivals. The restaurant scale, implemented strategies, table categories, and fixed dining-time setting remain comparable. The purpose of this pair is to test whether strategy choice matters more under high-pressure arrival waves than under low-pressure arrival patterns.
 
 ##### 1. Executive Summary for This Part
  
@@ -681,7 +716,21 @@ The strongest overall default strategy is therefore Single Snake. It is not beca
 This conclusion should be stated carefully. The simulation does not prove that Single Snake will eliminate queues in every high-pressure situation. It shows that, among the tested alternatives and using the provided output charts, Single Snake reduces the severity of the queue more effectively than the other strategies when arrivals are highly concentrated.
 
 
-#### 6.6 Limitation Analysis
+#### 6.6 Additional Proposed Case Pairs
+
+The completed experiments above provide implemented evidence for the main baseline-centered comparisons. To further match the Topic C suggestion of 5-6 paired scenarios, the following additional case pairs are proposed as future extensions. They are not reported as completed experiments; instead, they define clear controlled comparisons that could be implemented with the same CSV input format and simulation pipeline.
+
+| Pair concept | Controlled variable | Real-world scenario | Implementation plan | Expected result |
+|---|---|---|---|---|
+| Baseline vs fewer large tables | Number of Type C tables | A small cafe has limited space and removes large tables to fit more small tables. | Keep the same customer arrival file as the baseline, but reduce `C` table count in the restaurant CSV while leaving strategy, customer volume, and dining-time mode unchanged. | Large parties should wait longer, max queue length for large-group demand should increase, and total occupation may become more sensitive to table mix. |
+| Baseline vs table-capacity rebalancing | Table distribution across A/B/C | A restaurant redesigns its floor plan after observing that one table category is consistently overloaded. | Keep total table count similar, but shift some capacity from underused categories to the bottleneck category, then compare summary metrics with the baseline. | If the bottleneck table type receives more capacity, average wait time and max queue length should fall for the affected group-size segment. |
+| Baseline vs VIP + single-snake hybrid | Queue policy | A restaurant wants both perceived fairness from a shared queue and limited priority treatment for loyalty members. | Add a hybrid strategy where most groups wait in one shared queue, but VIP groups receive a small priority boost only when a suitable table is available. | VIP waiting time may decrease, but the system should be checked for fairness loss and whether non-VIP average wait time increases. |
+| Baseline vs customer walkaway behavior | Customer abandonment rule | In real peak-hour restaurants, some customers leave if the expected wait is too long. | Add a maximum patience threshold to customer records, then mark groups as unserved if their wait exceeds that threshold. | Average wait among served customers may decrease, but total served groups and customer satisfaction interpretation become more complex. |
+| Baseline vs table-sharing policy | Seating rule | A dim sum hall or crowded cafe may allow unrelated small groups to share a large table. | Extend the table model from one-group-per-table to partial table occupancy, then allow compatible small groups to share unused seats. | Seat utilization should increase and small-group wait time may decrease, but the model becomes more complex and may reduce customer comfort in some real contexts. |
+
+These proposed pairs show how the current project could be extended without changing its core modeling approach: each pair keeps most inputs stable and changes one main factor, making the resulting trade-off easier to interpret.
+
+#### 6.7 Limitation Analysis
 
 The case studies are useful for comparing strategy behavior, but several limitations remain. First, all datasets are synthetic. They are helpful for controlled testing, but they cannot fully represent real restaurant behavior, such as meal-period peaks, group cancellations, walk-away customers, or customers changing party size.
 
@@ -692,6 +741,21 @@ Third, the current table-category model is rigid. The MoreA case shows that stri
 Fourth, the model assumes all customers eventually wait until they are served. In real restaurants, long waits may cause customers to leave. Adding abandonment behavior would make the queue simulation more realistic and would also change how waiting-time results should be interpreted.
 
 Finally, the available testing outputs are not equally detailed across all cases. The long/short and MoreA cases include processed CSV summaries that support exact numerical comparison, while the baseline and MoreVIP cases rely more heavily on generated figures and input-distribution analysis. For a stronger evaluation, future tests should export the same summary metrics for every case.
+
+### 7. Topic C Requirements Checklist
+
+| Topic C requirement | Where addressed | Status |
+|---|---|---|
+| Define customer arrival scenarios with group size, arrival time, and dining duration | Sections 3.2-3.3, 5.2, README input schema, `Testing/` CSV files | Addressed |
+| Define restaurant settings with tables and queues | Sections 3.2, 3.4, 5.2, restaurant CSV files | Addressed |
+| Use simple file input/output | Sections 5.1-5.2, README run instructions, `Modeling&Coding/io_file.py` | Addressed |
+| Simulate arrivals, waiting queues, table release, and seating decisions | Sections 3.4, 5.3-5.4, strategy modules | Addressed |
+| Track dining duration and output wait-time metrics | Sections 3.3, 5.5, output summaries | Addressed |
+| Output queue length and utilization evidence | Sections 5.5-5.8, Section 6 figures and tables | Addressed |
+| Include basic input validation | Section 5.2, Section 5.7, pytest validation tests | Addressed |
+| Provide case studies comparing restaurant settings or strategy behavior | Section 6.1-6.5 implemented comparisons; Section 6.6 proposed extensions | Addressed with implemented and proposed pairs clearly separated |
+| Discuss trade-offs, limitations, and future improvements | Sections 6.2-6.7 | Addressed |
+| Provide repository and demo evidence for reproduction | Submission Links section | GitHub provided; demo link to be added |
 
 ### References
 

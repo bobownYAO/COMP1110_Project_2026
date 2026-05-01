@@ -152,7 +152,9 @@ def read_console(random_state):
 def data_process(restaurant ,customer, random_state):
 
     random_offsets = np.random.randint(-10, 11, size=len(customer))
-    customer["dinning_time"]=customer["number"]*10+20+random_state*random_offsets
+    customer["dining_time"] = customer["number"] * 10 + 20 + random_state * random_offsets
+    # Backward-compatible alias used by the existing strategy modules.
+    customer["dinning_time"] = customer["dining_time"]
     
     earliest_arrival = customer.groupby("restaurant")["arrival_time"].min()
     restaurant["open_time"] = restaurant["name"].map(earliest_arrival)

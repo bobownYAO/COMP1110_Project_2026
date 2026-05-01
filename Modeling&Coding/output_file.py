@@ -17,6 +17,7 @@ def f_total_seats(restaurant_sub):
 
 
 def f_occupation_rate(customer_sub, total_seats, open_time):
+    """Return average seat occupation: dining people divided by total seats."""
     
     served = customer_sub.dropna(subset=["start_service_time", "leave_time"])
     if served.empty:
