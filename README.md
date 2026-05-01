@@ -18,7 +18,7 @@ The project work was organized around research, modeling, coding, testing, case 
 
 | Member | Main research focus | Modeling / coding focus | Report focus |
 |---|---|---|---|
-| Yao Lijia | VIP strategy and THE GULU case study | File input, data model, data generation, database management, Algorithm 1, and video demo | Vision, optimization, and data-model explanation |
+| Yao Lijia | VIP strategy and THE GULU case study | File input, data model, data generation, data management, Algorithm 1, and video demo | Vision, optimization, and data-model explanation |
 | Yu Wei | Size-based queue strategy and Meituan / KeeTa case studies | Algorithm 2, sample testing, and group report writing | Problem definition, project significance, and algorithm explanation |
 | Jiang Hongyi | Single snake queue, table sharing, and Meiwei Bu Yong Deng case study | Algorithm 3 and scenario design | Evaluation, limitations, and algorithm explanation |
 | Zhang Zhanhao | Single snake strategy and Haidilao case study | File output, case simulation, and output analysis | Comparative analysis and case-simulation explanation |
@@ -72,13 +72,12 @@ COMP1110_Project_2026/
 |   |-- plot_table_utilization_line.py
 |   |-- plot_table_utilization_bar.py
 |   |-- plot_waiting_time_density.py
-|   |-- plot_queue_length_over_time.py
-|   |-- testdata_restaurant.csv
-|   `-- testdata_customer.csv
+|   `-- plot_queue_length_over_time.py
 |-- Testing/
 |   |-- data_generate.py
 |   |-- Baseline/
 |   |-- MoreVIP/
+|   |-- sample_cases/
 |   |-- Testdata-MoreA/
 |   `-- Testdate-longshort/
 |-- Final_report/
@@ -88,8 +87,8 @@ COMP1110_Project_2026/
 
 Main folders:
 
-- `Modeling&Coding/`: contains the executable simulation code, data loading functions, queue-state structure, strategy algorithms, result analysis, plotting scripts, and small sample CSV files.
-- `Testing/`: contains generated restaurant/customer datasets, scenario folders, previous output charts, and `data_generate.py` for creating new synthetic test data.
+- `Modeling&Coding/`: contains the executable simulation code, data loading functions, queue-state structure, strategy algorithms, result analysis, and plotting scripts.
+- `Testing/`: contains generated restaurant/customer datasets, sample CSV fixtures, scenario folders, previous output charts, and `data_generate.py` for creating new synthetic test data.
 - `Final_report/`: contains the final report and generated figures used for project analysis.
 - `Plan/`: contains planning materials for the project.
 - `Research/`: contains research notes that motivated the selected queue strategies.
@@ -129,8 +128,8 @@ For data loading:
 CSV mode requires explicit restaurant and customer CSV paths. For example, use the sample files:
 
 ```text
-COMP1110_Project_2026\Modeling&Coding\testdata_restaurant.csv
-COMP1110_Project_2026\Modeling&Coding\testdata_customer.csv
+COMP1110_Project_2026\Testing\sample_cases\valid_restaurant.csv
+COMP1110_Project_2026\Testing\sample_cases\valid_customer.csv
 ```
 
 For reproducible non-interactive runs, execute the same program from the project root with explicit CSV paths:
